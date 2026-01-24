@@ -17,6 +17,9 @@ export async function getAllProjects(): Promise<
         issues: {
           select: { status: true },
         },
+        _count: {
+          select: { epics: true },
+        },
       },
       orderBy: { updatedAt: "desc" },
     });
@@ -46,8 +49,8 @@ export async function getAllProjects(): Promise<
         }
       });
 
-      const { issues: _, ...projectData } = project;
-      return { ...projectData, issueCounts };
+      const { issues: _, _count, ...projectData } = project;
+      return { ...projectData, issueCounts, epicCount: _count.epics };
     });
 
     return { data: projectsWithCounts };

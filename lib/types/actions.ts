@@ -42,6 +42,7 @@ export type ProjectWithIssueCounts = {
   createdAt: Date;
   updatedAt: Date;
   issueCounts: IssueCounts;
+  epicCount: number;
 };
 
 // Epic with issue counts for list view
