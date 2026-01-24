@@ -1,0 +1,14 @@
+model Project {
+  id             String    @id @default(cuid())
+  name           String
+  description    String?
+  githubRepo     String?   @map("github_repo")
+  githubSyncedAt DateTime? @map("github_synced_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  epics  Epic[]
+  issues Issue[]
+
+  @@map("projects")
+}

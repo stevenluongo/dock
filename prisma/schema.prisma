@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IssueType {
+  TASK
+  STORY
+  BUG
+  DOCS
+}
+
+enum IssueStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum GithubState {
+  OPEN
+  CLOSED
+}
