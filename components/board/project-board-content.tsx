@@ -21,6 +21,7 @@ import { BoardColumn } from "./board-column";
 import { IssueCardOverlay } from "./issue-card";
 import { IssueDetailPanel } from "./issue-detail-panel";
 import { EditIssuePanel } from "./edit-issue-panel";
+import { DeleteIssueDialog } from "./delete-issue-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import type { ProjectWithEpics, Issue, IssueStatus } from "@/lib/types/actions";
@@ -60,6 +61,7 @@ export function ProjectBoardContent({
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
+  const [deletingIssue, setDeletingIssue] = useState<Issue | null>(null);
   const previousIssuesRef = useRef<Issue[]>([]);
   const [filters, setFilters] = useState<BoardFilterState>({
     search: "",
@@ -365,6 +367,10 @@ export function ProjectBoardContent({
           setSelectedIssue(null);
           setEditingIssue(issue);
         }}
+        onDelete={(issue) => {
+          setSelectedIssue(null);
+          setDeletingIssue(issue);
+        }}
       />
 
       <EditIssuePanel
@@ -375,6 +381,15 @@ export function ProjectBoardContent({
           if (!open) setEditingIssue(null);
         }}
         epics={project.epics}
+        onSuccess={() => router.refresh()}
+      />
+
+      <DeleteIssueDialog
+        issue={deletingIssue}
+        open={deletingIssue !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingIssue(null);
+        }}
         onSuccess={() => router.refresh()}
       />
     </>
