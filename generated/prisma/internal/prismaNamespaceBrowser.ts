@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Epic: 'Epic',
+  IssueActivity: 'IssueActivity',
   Issue: 'Issue',
   Project: 'Project'
 } as const
@@ -83,6 +84,19 @@ export const EpicScalarFieldEnum = {
 } as const
 
 export type EpicScalarFieldEnum = (typeof EpicScalarFieldEnum)[keyof typeof EpicScalarFieldEnum]
+
+
+export const IssueActivityScalarFieldEnum = {
+  id: 'id',
+  issueId: 'issueId',
+  action: 'action',
+  field: 'field',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  createdAt: 'createdAt'
+} as const
+
+export type IssueActivityScalarFieldEnum = (typeof IssueActivityScalarFieldEnum)[keyof typeof IssueActivityScalarFieldEnum]
 
 
 export const IssueScalarFieldEnum = {

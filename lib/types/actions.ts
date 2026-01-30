@@ -2,9 +2,11 @@ import type {
   Project,
   Epic,
   Issue,
+  IssueActivity,
   Priority,
   IssueType,
   IssueStatus,
+  ActivityType,
   GithubState,
 } from "@/generated/prisma/client";
 
@@ -18,9 +20,11 @@ export type {
   Project,
   Epic,
   Issue,
+  IssueActivity,
   Priority,
   IssueType,
   IssueStatus,
+  ActivityType,
   GithubState,
 };
 

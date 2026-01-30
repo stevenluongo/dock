@@ -32,3 +32,10 @@ enum GithubState {
   OPEN
   CLOSED
 }
+
+enum ActivityType {
+  CREATED
+  STATUS_CHANGED
+  EDITED
+  SYNCED
+}

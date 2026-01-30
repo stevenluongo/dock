@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Epic: 'Epic',
+  IssueActivity: 'IssueActivity',
   Issue: 'Issue',
   Project: 'Project'
 } as const
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "epic" | "issue" | "project"
+    modelProps: "epic" | "issueActivity" | "issue" | "project"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -477,6 +478,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EpicCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EpicCountAggregateOutputType> | number
+        }
+      }
+    }
+    IssueActivity: {
+      payload: Prisma.$IssueActivityPayload<ExtArgs>
+      fields: Prisma.IssueActivityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IssueActivityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IssueActivityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>
+        }
+        findFirst: {
+          args: Prisma.IssueActivityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IssueActivityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>
+        }
+        findMany: {
+          args: Prisma.IssueActivityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>[]
+        }
+        create: {
+          args: Prisma.IssueActivityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>
+        }
+        createMany: {
+          args: Prisma.IssueActivityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IssueActivityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>[]
+        }
+        delete: {
+          args: Prisma.IssueActivityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>
+        }
+        update: {
+          args: Prisma.IssueActivityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>
+        }
+        deleteMany: {
+          args: Prisma.IssueActivityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IssueActivityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IssueActivityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>[]
+        }
+        upsert: {
+          args: Prisma.IssueActivityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IssueActivityPayload>
+        }
+        aggregate: {
+          args: Prisma.IssueActivityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIssueActivity>
+        }
+        groupBy: {
+          args: Prisma.IssueActivityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IssueActivityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IssueActivityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IssueActivityCountAggregateOutputType> | number
         }
       }
     }
@@ -680,6 +755,19 @@ export const EpicScalarFieldEnum = {
 export type EpicScalarFieldEnum = (typeof EpicScalarFieldEnum)[keyof typeof EpicScalarFieldEnum]
 
 
+export const IssueActivityScalarFieldEnum = {
+  id: 'id',
+  issueId: 'issueId',
+  action: 'action',
+  field: 'field',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  createdAt: 'createdAt'
+} as const
+
+export type IssueActivityScalarFieldEnum = (typeof IssueActivityScalarFieldEnum)[keyof typeof IssueActivityScalarFieldEnum]
+
+
 export const IssueScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -783,6 +871,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ActivityType'
+ */
+export type EnumActivityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ActivityType'>
+    
+
+
+/**
+ * Reference to a field of type 'ActivityType[]'
+ */
+export type ListEnumActivityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ActivityType[]'>
     
 
 
@@ -951,6 +1053,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   epic?: Prisma.EpicOmit
+  issueActivity?: Prisma.IssueActivityOmit
   issue?: Prisma.IssueOmit
   project?: Prisma.ProjectOmit
 }

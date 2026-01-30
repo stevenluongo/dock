@@ -23,6 +23,11 @@ export * from './enums';
  */
 export type Epic = Prisma.EpicModel
 /**
+ * Model IssueActivity
+ * 
+ */
+export type IssueActivity = Prisma.IssueActivityModel
+/**
  * Model Issue
  * 
  */
