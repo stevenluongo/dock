@@ -329,7 +329,6 @@ export function ProjectBoardContent({
                 colorClass={column.colorClass}
                 epicMap={epicMap}
                 projectId={project.id}
-                epics={project.epics}
                 onIssueCreated={() => router.refresh()}
                 onIssueClick={setSelectedIssue}
               />

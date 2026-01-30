@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition, useRef } from "react";
 import { Plus } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -8,9 +8,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { IssueCard } from "./issue-card";
-import { CreateIssuePanel } from "./create-issue-panel";
-import type { Issue, IssueStatus, EpicWithIssueCounts } from "@/lib/types/actions";
+import { createIssue } from "@/app/actions/issues/create-issue-action";
+import type { Issue, IssueStatus } from "@/lib/types/actions";
 
 interface BoardColumnProps {
   id: IssueStatus;
@@ -19,7 +20,6 @@ interface BoardColumnProps {
   colorClass: string;
   epicMap: Record<string, string>;
   projectId: string;
-  epics: EpicWithIssueCounts[];
   onIssueCreated?: () => void;
   onIssueClick?: (issue: Issue) => void;
 }
@@ -31,14 +31,44 @@ export function BoardColumn({
   colorClass,
   epicMap,
   projectId,
-  epics,
   onIssueCreated,
   onIssueClick,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const issueIds = issues.map((issue) => issue.id);
+
+  function handleQuickAdd() {
+    const title = inputRef.current?.value.trim();
+    if (!title) return;
+
+    startTransition(async () => {
+      const result = await createIssue({
+        title,
+        projectId,
+        status: id,
+        order: issues.length,
+      });
+
+      if ("data" in result) {
+        if (inputRef.current) inputRef.current.value = "";
+        setQuickAddOpen(false);
+        onIssueCreated?.();
+      }
+    });
+  }
+
+  function handleQuickAddKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleQuickAdd();
+    } else if (e.key === "Escape") {
+      setQuickAddOpen(false);
+    }
+  }
 
   return (
     <div
@@ -55,7 +85,10 @@ export function BoardColumn({
         <Button
           variant="ghost"
           size="icon-xs"
-          onClick={() => setDialogOpen(true)}
+          onClick={() => {
+            setQuickAddOpen(true);
+            setTimeout(() => inputRef.current?.focus(), 0);
+          }}
           className="text-muted-foreground hover:text-foreground"
         >
           <Plus className="h-4 w-4" />
@@ -64,8 +97,40 @@ export function BoardColumn({
 
       {/* Column body */}
       <div ref={setNodeRef} aria-label={title} className="flex-1 overflow-y-auto px-2 pb-2 space-y-2 min-h-24">
+        {/* Quick-add input */}
+        {quickAddOpen && (
+          <div className="rounded-md border bg-card p-2 shadow-sm">
+            <Input
+              ref={inputRef}
+              placeholder="Issue title"
+              maxLength={255}
+              onKeyDown={handleQuickAddKeyDown}
+              onBlur={() => {
+                if (!isPending && !inputRef.current?.value.trim()) {
+                  setQuickAddOpen(false);
+                }
+              }}
+              disabled={isPending}
+              className="h-8 text-sm"
+            />
+            <div className="flex items-center justify-between mt-1.5">
+              <span className="text-[10px] text-muted-foreground">
+                Enter to create &middot; Esc to cancel
+              </span>
+              <Button
+                size="sm"
+                className="h-6 text-xs px-2"
+                onClick={handleQuickAdd}
+                disabled={isPending}
+              >
+                {isPending ? "..." : "Add"}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <SortableContext items={issueIds} strategy={verticalListSortingStrategy}>
-          {issues.length === 0 ? (
+          {issues.length === 0 && !quickAddOpen ? (
             <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
               <p className="text-xs text-muted-foreground">No issues</p>
               <p className="text-[11px] text-muted-foreground/60 mt-1">
@@ -84,16 +149,6 @@ export function BoardColumn({
           )}
         </SortableContext>
       </div>
-
-      <CreateIssuePanel
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        projectId={projectId}
-        status={id}
-        issueCount={issues.length}
-        epics={epics}
-        onSuccess={onIssueCreated}
-      />
     </div>
   );
 }
