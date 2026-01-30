@@ -1,5 +1,6 @@
 "use client";
 
+import { useDraggable } from "@dnd-kit/core";
 import type { Issue, IssueType, Priority } from "@/lib/types/actions";
 
 const TYPE_STYLES: Record<IssueType, { label: string; className: string }> = {
@@ -22,13 +23,20 @@ interface IssueCardProps {
 }
 
 export function IssueCard({ issue, epicName }: IssueCardProps) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: issue.id,
+    data: { issue },
+  });
+
   const typeStyle = TYPE_STYLES[issue.type];
   const priorityColor = PRIORITY_COLORS[issue.priority];
 
   return (
-    <button
-      type="button"
-      className="w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-pointer"
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing ${isDragging ? "opacity-30" : ""}`}
     >
       {/* Title */}
       <p className="text-sm font-medium leading-snug line-clamp-2">
@@ -52,7 +60,7 @@ export function IssueCard({ issue, epicName }: IssueCardProps) {
 
         {/* Epic name */}
         {epicName && (
-          <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">
+          <span className="text-[10px] text-muted-foreground truncate max-w-30">
             {epicName}
           </span>
         )}
@@ -64,6 +72,32 @@ export function IssueCard({ issue, epicName }: IssueCardProps) {
           </span>
         )}
       </div>
-    </button>
+    </div>
+  );
+}
+
+export function IssueCardOverlay({ issue, epicName }: IssueCardProps) {
+  const typeStyle = TYPE_STYLES[issue.type];
+  const priorityColor = PRIORITY_COLORS[issue.priority];
+
+  return (
+    <div className="w-70 text-left rounded-md border bg-card p-3 shadow-lg rotate-2 cursor-grabbing">
+      <p className="text-sm font-medium leading-snug line-clamp-2">
+        {issue.title}
+      </p>
+      <div className="flex items-center gap-2 mt-2 flex-wrap">
+        <span className={`h-2 w-2 rounded-full shrink-0 ${priorityColor}`} />
+        <span
+          className={`text-[10px] font-medium leading-none px-1.5 py-0.5 rounded ${typeStyle.className}`}
+        >
+          {typeStyle.label}
+        </span>
+        {epicName && (
+          <span className="text-[10px] text-muted-foreground truncate max-w-30">
+            {epicName}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
