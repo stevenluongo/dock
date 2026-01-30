@@ -26,6 +26,18 @@ export const updateIssueSchema = z.object({
 
 export const updateIssueStatusSchema = z.object({
   status: z.nativeEnum(IssueStatus),
+  order: z.number().int().min(0).optional(),
+});
+
+export const reorderIssuesSchema = z.object({
+  updates: z
+    .array(
+      z.object({
+        id: z.string().cuid(),
+        order: z.number().int().min(0),
+      }),
+    )
+    .min(1),
 });
 
 export const issueFiltersSchema = z.object({
@@ -38,4 +50,5 @@ export const issueFiltersSchema = z.object({
 export type CreateIssueInput = z.infer<typeof createIssueSchema>;
 export type UpdateIssueInput = z.infer<typeof updateIssueSchema>;
 export type UpdateIssueStatusInput = z.infer<typeof updateIssueStatusSchema>;
+export type ReorderIssuesInput = z.infer<typeof reorderIssuesSchema>;
 export type IssueFiltersInput = z.infer<typeof issueFiltersSchema>;

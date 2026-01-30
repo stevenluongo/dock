@@ -56,7 +56,7 @@ export async function getProjectIssues(
 
     const issues = await prisma.issue.findMany({
       where,
-      orderBy: [{ priority: "asc" }, { createdAt: "desc" }],
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
 
     return { data: issues };
