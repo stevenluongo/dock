@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
 import { Label } from "@/components/ui/label";
 import { createIssue } from "@/app/actions/issues/create-issue-action";
 import type {
@@ -142,10 +142,10 @@ export function CreateIssuePanel({
             {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Textarea
+              <MarkdownTextarea
                 id="description"
                 name="description"
-                placeholder="Describe the issue..."
+                placeholder="Describe the issue... (supports markdown)"
                 rows={4}
                 maxLength={10000}
               />

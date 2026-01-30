@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
 import { Label } from "@/components/ui/label";
 import { updateIssue } from "@/app/actions/issues/update-issue-action";
 import type {
@@ -127,10 +127,11 @@ export function EditIssuePanel({
             {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="edit-description">Description</Label>
-              <Textarea
+              <MarkdownTextarea
                 id="edit-description"
                 name="description"
                 defaultValue={issue.description ?? ""}
+                placeholder="Describe the issue... (supports markdown)"
                 rows={4}
                 maxLength={10000}
               />

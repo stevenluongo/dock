@@ -8,6 +8,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { MarkdownPreview } from "@/components/ui/markdown-preview";
 import { Pencil, Trash2, ExternalLink } from "lucide-react";
 import type { Issue, IssueType, Priority, IssueStatus } from "@/lib/types/actions";
 
@@ -106,7 +107,7 @@ export function IssueDetailPanel({
               <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Description
               </h3>
-              <p className="text-sm whitespace-pre-wrap">{issue.description}</p>
+              <MarkdownPreview content={issue.description} />
             </div>
           )}
 
