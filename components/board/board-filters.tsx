@@ -1,7 +1,8 @@
 "use client";
 
-import { Filter, X } from "lucide-react";
+import { Filter, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -47,6 +48,7 @@ const TYPES: { value: IssueType; label: string; className: string }[] = [
 ];
 
 export interface BoardFilterState {
+  search: string;
   priorities: Priority[];
   types: IssueType[];
   epicIds: string[];
@@ -64,7 +66,10 @@ export function BoardFilters({
   epics,
 }: BoardFiltersProps) {
   const activeCount =
-    filters.priorities.length + filters.types.length + filters.epicIds.length;
+    (filters.search ? 1 : 0) +
+    filters.priorities.length +
+    filters.types.length +
+    filters.epicIds.length;
 
   function togglePriority(priority: Priority) {
     const next = filters.priorities.includes(priority)
@@ -88,11 +93,23 @@ export function BoardFilters({
   }
 
   function clearAll() {
-    onFiltersChange({ priorities: [], types: [], epicIds: [] });
+    onFiltersChange({ search: "", priorities: [], types: [], epicIds: [] });
   }
 
   return (
     <div className="flex items-center gap-2 px-6 py-2 border-b">
+      <div className="relative shrink-0">
+        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Input
+          value={filters.search}
+          onChange={(e) =>
+            onFiltersChange({ ...filters, search: e.target.value })
+          }
+          placeholder="Search issues..."
+          className="h-7 w-44 pl-7 text-xs"
+        />
+      </div>
+
       <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
 
       {/* Priority filter */}

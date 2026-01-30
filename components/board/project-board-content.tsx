@@ -58,6 +58,7 @@ export function ProjectBoardContent({
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const previousIssuesRef = useRef<Issue[]>([]);
   const [filters, setFilters] = useState<BoardFilterState>({
+    search: "",
     priorities: [],
     types: [],
     epicIds: [],
@@ -75,6 +76,10 @@ export function ProjectBoardContent({
 
   const filteredIssues = useMemo(() => {
     let result = issues;
+    if (filters.search) {
+      const query = filters.search.toLowerCase();
+      result = result.filter((i) => i.title.toLowerCase().includes(query));
+    }
     if (filters.priorities.length > 0) {
       result = result.filter((i) => filters.priorities.includes(i.priority));
     }
