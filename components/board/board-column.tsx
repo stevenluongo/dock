@@ -62,9 +62,12 @@ export function BoardColumn({
       <div ref={setNodeRef} className="flex-1 overflow-y-auto px-2 pb-2 space-y-2 min-h-24">
         <SortableContext items={issueIds} strategy={verticalListSortingStrategy}>
           {issues.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-8">
-              No issues
-            </p>
+            <div className="flex flex-col items-center justify-center py-8 px-3 text-center">
+              <p className="text-xs text-muted-foreground">No issues</p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1">
+                Drag issues here or use +
+              </p>
+            </div>
           ) : (
             issues.map((issue) => (
               <IssueCard
