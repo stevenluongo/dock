@@ -8,6 +8,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { IssueCard } from "./issue-card";
 import { createIssue } from "@/app/actions/issues/create-issue-action";
@@ -24,6 +25,11 @@ interface BoardColumnProps {
   onIssueClick?: (issue: Issue) => void;
   autoOpenQuickAdd?: boolean;
   onQuickAddClose?: () => void;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  onSelect?: (issueId: string, selected: boolean) => void;
+  onSelectAll?: (columnId: IssueStatus, issueIds: string[]) => void;
+  onDeselectAll?: (issueIds: string[]) => void;
 }
 
 export function BoardColumn({
@@ -37,6 +43,11 @@ export function BoardColumn({
   onIssueClick,
   autoOpenQuickAdd,
   onQuickAddClose,
+  selectable,
+  selectedIds,
+  onSelect,
+  onSelectAll,
+  onDeselectAll,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -93,6 +104,26 @@ export function BoardColumn({
       {/* Column header */}
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-2">
+          {selectable && issues.length > 0 && (
+            <Checkbox
+              checked={
+                issues.length > 0 && issues.every((i) => selectedIds?.has(i.id))
+                  ? true
+                  : issues.some((i) => selectedIds?.has(i.id))
+                    ? "indeterminate"
+                    : false
+              }
+              onCheckedChange={(checked) => {
+                const issueIds = issues.map((i) => i.id);
+                if (checked) {
+                  onSelectAll?.(id, issueIds);
+                } else {
+                  onDeselectAll?.(issueIds);
+                }
+              }}
+              aria-label={`Select all in ${title}`}
+            />
+          )}
           <h2 className="text-sm font-medium">{title}</h2>
           <span className="text-xs text-muted-foreground rounded-full bg-background/50 px-2 py-0.5 tabular-nums">
             {issues.length}
@@ -160,6 +191,9 @@ export function BoardColumn({
                 issue={issue}
                 epicName={issue.epicId ? epicMap[issue.epicId] : undefined}
                 onClick={onIssueClick}
+                selectable={selectable}
+                selected={selectedIds?.has(issue.id)}
+                onSelect={onSelect}
               />
             ))
           )}

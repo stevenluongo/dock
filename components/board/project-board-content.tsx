@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
@@ -18,6 +18,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { BoardHeader } from "./board-header";
 import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
+import { BulkActionBar } from "./bulk-action-bar";
 import { IssueCardOverlay } from "./issue-card";
 import { IssueDetailPanel } from "./issue-detail-panel";
 import { CreateIssuePanel } from "./create-issue-panel";
@@ -25,6 +26,7 @@ import { EditIssuePanel } from "./edit-issue-panel";
 import { DeleteIssueDialog } from "./delete-issue-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
+import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
 import type { ProjectWithEpics, Issue, IssueStatus } from "@/lib/types/actions";
 
 const COLUMNS: { id: IssueStatus; title: string; colorClass: string }[] = [
@@ -75,6 +77,37 @@ export function ProjectBoardContent({
     null,
   );
   const [createPanelOpen, setCreatePanelOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const handleSelect = useCallback((issueId: string, selected: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (selected) {
+        next.add(issueId);
+      } else {
+        next.delete(issueId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback((_columnId: IssueStatus, issueIds: string[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of issueIds) next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleDeselectAll = useCallback((issueIds: string[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of issueIds) next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -85,6 +118,12 @@ export function ProjectBoardContent({
         tag === "SELECT" ||
         (e.target as HTMLElement)?.isContentEditable
       ) {
+        return;
+      }
+
+      if (e.key === "Escape" && selectedIds.size > 0) {
+        e.preventDefault();
+        clearSelection();
         return;
       }
 
@@ -99,7 +138,7 @@ export function ProjectBoardContent({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [selectedIds.size, clearSelection]);
 
   const epicMap: Record<string, string> = {};
   for (const epic of project.epics) {
@@ -380,6 +419,11 @@ export function ProjectBoardContent({
                 onIssueClick={setSelectedIssue}
                 autoOpenQuickAdd={quickAddColumnId === column.id}
                 onQuickAddClose={() => setQuickAddColumnId(null)}
+                selectable
+                selectedIds={selectedIds}
+                onSelect={handleSelect}
+                onSelectAll={handleSelectAll}
+                onDeselectAll={handleDeselectAll}
               />
             ))}
           </div>
@@ -431,6 +475,14 @@ export function ProjectBoardContent({
           setSelectedIssue(null);
           setDeletingIssue(issue);
         }}
+        onDuplicate={async (issue) => {
+          setSelectedIssue(null);
+          const result = await duplicateIssue(issue.id);
+          if ("data" in result && result.data) {
+            router.refresh();
+            setEditingIssue(result.data);
+          }
+        }}
       />
 
       <EditIssuePanel
@@ -462,6 +514,15 @@ export function ProjectBoardContent({
         epics={project.epics}
         onSuccess={() => router.refresh()}
       />
+
+      {selectedIds.size > 0 && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          selectedIds={Array.from(selectedIds)}
+          onClear={clearSelection}
+          onSuccess={() => router.refresh()}
+        />
+      )}
     </>
   );
 }

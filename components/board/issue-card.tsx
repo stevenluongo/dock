@@ -2,6 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Checkbox } from "@/components/ui/checkbox";
 import { getLabelColor } from "@/lib/utils/label-colors";
 import type { Issue, IssueType, Priority } from "@/lib/types/actions";
 
@@ -23,9 +24,12 @@ interface IssueCardProps {
   issue: Issue;
   epicName?: string;
   onClick?: (issue: Issue) => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelect?: (issueId: string, selected: boolean) => void;
 }
 
-export function IssueCard({ issue, epicName, onClick }: IssueCardProps) {
+export function IssueCard({ issue, epicName, onClick, selectable, selected, onSelect }: IssueCardProps) {
   const {
     attributes,
     listeners,
@@ -53,10 +57,25 @@ export function IssueCard({ issue, epicName, onClick }: IssueCardProps) {
       {...listeners}
       {...attributes}
       onClick={() => onClick?.(issue)}
-      className={`w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isDragging ? "opacity-30" : ""}`}
+      className={`group/card relative w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isDragging ? "opacity-30" : ""} ${selected ? "ring-2 ring-primary border-primary" : ""}`}
     >
+      {/* Selection checkbox */}
+      {selectable && (
+        <div
+          className={`absolute top-2 right-2 z-10 ${selected ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"} transition-opacity`}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(checked) => onSelect?.(issue.id, !!checked)}
+            aria-label={`Select ${issue.title}`}
+          />
+        </div>
+      )}
+
       {/* Title */}
-      <p className="text-sm font-medium leading-snug line-clamp-2">
+      <p className={`text-sm font-medium leading-snug line-clamp-2 ${selectable ? "pr-6" : ""}`}>
         {issue.title}
       </p>
 
