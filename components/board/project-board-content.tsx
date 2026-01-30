@@ -7,9 +7,21 @@ import type { ProjectWithEpics, Issue, IssueStatus } from "@/lib/types/actions";
 
 const COLUMNS: { id: IssueStatus; title: string; colorClass: string }[] = [
   { id: "BACKLOG", title: "Backlog", colorClass: "bg-muted/50" },
-  { id: "TODO", title: "Todo", colorClass: "bg-blue-50/50 dark:bg-blue-950/20" },
-  { id: "IN_PROGRESS", title: "In Progress", colorClass: "bg-amber-50/50 dark:bg-amber-950/20" },
-  { id: "DONE", title: "Done", colorClass: "bg-green-50/50 dark:bg-green-950/20" },
+  {
+    id: "TODO",
+    title: "Todo",
+    colorClass: "bg-blue-50/50 dark:bg-blue-950/20",
+  },
+  {
+    id: "IN_PROGRESS",
+    title: "In Progress",
+    colorClass: "bg-amber-50/50 dark:bg-amber-950/20",
+  },
+  {
+    id: "DONE",
+    title: "Done",
+    colorClass: "bg-green-50/50 dark:bg-green-950/20",
+  },
 ];
 
 interface ProjectBoardContentProps {
@@ -34,7 +46,7 @@ export function ProjectBoardContent({
   return (
     <>
       {/* Header */}
-      <div className="border-b px-6 py-4">
+      <div className="border-b px-6 py-4 space-y-5">
         <Link
           href="/"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
