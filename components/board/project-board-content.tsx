@@ -21,6 +21,11 @@ export function ProjectBoardContent({
   project,
   issues,
 }: ProjectBoardContentProps) {
+  const epicMap: Record<string, string> = {};
+  for (const epic of project.epics) {
+    epicMap[epic.id] = epic.title;
+  }
+
   const issuesByStatus = COLUMNS.map((column) => ({
     ...column,
     issues: issues.filter((issue) => issue.status === column.id),
@@ -49,6 +54,7 @@ export function ProjectBoardContent({
               title={column.title}
               issues={column.issues}
               colorClass={column.colorClass}
+              epicMap={epicMap}
             />
           ))}
         </div>

@@ -1,16 +1,18 @@
 "use client";
 
+import { IssueCard } from "./issue-card";
 import type { Issue } from "@/lib/types/actions";
 
 interface BoardColumnProps {
   title: string;
   issues: Issue[];
   colorClass: string;
+  epicMap: Record<string, string>;
 }
 
-export function BoardColumn({ title, issues, colorClass }: BoardColumnProps) {
+export function BoardColumn({ title, issues, colorClass, epicMap }: BoardColumnProps) {
   return (
-    <div className={`w-[280px] shrink-0 flex flex-col rounded-lg ${colorClass}`}>
+    <div className={`w-70 shrink-0 flex flex-col rounded-lg ${colorClass}`}>
       {/* Column header */}
       <div className="flex items-center justify-between px-3 py-2">
         <h2 className="text-sm font-medium">{title}</h2>
@@ -27,14 +29,11 @@ export function BoardColumn({ title, issues, colorClass }: BoardColumnProps) {
           </p>
         ) : (
           issues.map((issue) => (
-            <div
+            <IssueCard
               key={issue.id}
-              className="rounded-md border bg-card p-3 shadow-sm"
-            >
-              <p className="text-sm font-medium leading-snug line-clamp-2">
-                {issue.title}
-              </p>
-            </div>
+              issue={issue}
+              epicName={issue.epicId ? epicMap[issue.epicId] : undefined}
+            />
           ))
         )}
       </div>
