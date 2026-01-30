@@ -689,6 +689,7 @@ export const IssueScalarFieldEnum = {
   type: 'type',
   status: 'status',
   priority: 'priority',
+  order: 'order',
   labels: 'labels',
   assignees: 'assignees',
   githubIssueNumber: 'githubIssueNumber',

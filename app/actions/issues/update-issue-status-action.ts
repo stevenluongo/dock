@@ -31,7 +31,10 @@ export async function updateIssueStatus(
 
     const updatedIssue = await prisma.issue.update({
       where: { id },
-      data: { status: validated.data.status },
+      data: {
+        status: validated.data.status,
+        ...(validated.data.order !== undefined && { order: validated.data.order }),
+      },
     });
 
     return { data: updatedIssue };
