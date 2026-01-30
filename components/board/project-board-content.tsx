@@ -303,6 +303,8 @@ export function ProjectBoardContent({
                 issues={column.issues}
                 colorClass={column.colorClass}
                 epicMap={epicMap}
+                projectId={project.id}
+                onIssueCreated={() => router.refresh()}
               />
             ))}
           </div>
