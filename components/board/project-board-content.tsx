@@ -69,6 +69,7 @@ export function ProjectBoardContent({
     priorities: [],
     types: [],
     epicIds: [],
+    labels: [],
   });
   const [quickAddColumnId, setQuickAddColumnId] = useState<IssueStatus | null>(
     null,
@@ -105,6 +106,16 @@ export function ProjectBoardContent({
     epicMap[epic.id] = epic.title;
   }
 
+  const allLabels = useMemo(() => {
+    const set = new Set<string>();
+    for (const issue of issues) {
+      for (const label of issue.labels) {
+        set.add(label);
+      }
+    }
+    return Array.from(set).sort();
+  }, [issues]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, {
@@ -127,6 +138,11 @@ export function ProjectBoardContent({
     if (filters.epicIds.length > 0) {
       result = result.filter((i) =>
         filters.epicIds.includes(i.epicId ?? "none"),
+      );
+    }
+    if (filters.labels.length > 0) {
+      result = result.filter((i) =>
+        filters.labels.some((l) => i.labels.includes(l)),
       );
     }
     return result;
@@ -338,6 +354,7 @@ export function ProjectBoardContent({
         filters={filters}
         onFiltersChange={setFilters}
         epics={project.epics}
+        allLabels={allLabels}
       />
 
       {/* Board */}

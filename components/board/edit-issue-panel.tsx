@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
+import { LabelInput } from "@/components/ui/label-input";
 import { Label } from "@/components/ui/label";
 import { updateIssue } from "@/app/actions/issues/update-issue-action";
 import type {
@@ -71,6 +72,7 @@ export function EditIssuePanel({
   const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "BACKLOG");
   const [priority, setPriority] = useState<Priority>(issue?.priority ?? "MEDIUM");
   const [epicId, setEpicId] = useState<string>(issue?.epicId ?? "none");
+  const [labels, setLabels] = useState<string[]>(issue?.labels ?? []);
 
   function handleSubmit(formData: FormData) {
     if (!issue) return;
@@ -84,6 +86,7 @@ export function EditIssuePanel({
         type,
         priority,
         epicId: epicId === "none" ? null : epicId,
+        labels,
       });
 
       if ("error" in result) {
@@ -205,6 +208,16 @@ export function EditIssuePanel({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Labels */}
+            <div className="space-y-2">
+              <Label>Labels</Label>
+              <LabelInput
+                value={labels}
+                onChange={setLabels}
+                disabled={isPending}
+              />
             </div>
 
             {error && (

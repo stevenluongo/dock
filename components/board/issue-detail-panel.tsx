@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { MarkdownPreview } from "@/components/ui/markdown-preview";
+import { getLabelColor } from "@/lib/utils/label-colors";
 import { Pencil, Trash2, ExternalLink } from "lucide-react";
 import type { Issue, IssueType, Priority, IssueStatus } from "@/lib/types/actions";
 
@@ -149,6 +150,28 @@ export function IssueDetailPanel({
               </p>
             </div>
           </div>
+
+          {/* Labels */}
+          {issue.labels.length > 0 && (
+            <div className="space-y-1.5">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Labels
+              </h3>
+              <div className="flex flex-wrap gap-1.5">
+                {issue.labels.map((label) => {
+                  const color = getLabelColor(label);
+                  return (
+                    <span
+                      key={label}
+                      className={`text-xs font-medium px-2 py-0.5 rounded ${color.bg} ${color.text}`}
+                    >
+                      {label}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* GitHub link */}
           {githubUrl && (

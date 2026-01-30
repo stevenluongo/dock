@@ -2,6 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { getLabelColor } from "@/lib/utils/label-colors";
 import type { Issue, IssueType, Priority } from "@/lib/types/actions";
 
 const TYPE_STYLES: Record<IssueType, { label: string; className: string }> = {
@@ -88,6 +89,28 @@ export function IssueCard({ issue, epicName, onClick }: IssueCardProps) {
           </span>
         )}
       </div>
+
+      {/* Labels */}
+      {issue.labels.length > 0 && (
+        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+          {issue.labels.slice(0, 3).map((label) => {
+            const color = getLabelColor(label);
+            return (
+              <span
+                key={label}
+                className={`text-[10px] font-medium leading-none px-1.5 py-0.5 rounded ${color.bg} ${color.text}`}
+              >
+                {label}
+              </span>
+            );
+          })}
+          {issue.labels.length > 3 && (
+            <span className="text-[10px] text-muted-foreground">
+              +{issue.labels.length - 3}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

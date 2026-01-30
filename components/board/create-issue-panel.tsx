@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
+import { LabelInput } from "@/components/ui/label-input";
 import { Label } from "@/components/ui/label";
 import { createIssue } from "@/app/actions/issues/create-issue-action";
 import type {
@@ -74,12 +75,14 @@ export function CreateIssuePanel({
   const [selectedStatus, setSelectedStatus] = useState<IssueStatus>(status);
   const [priority, setPriority] = useState<Priority>("MEDIUM");
   const [epicId, setEpicId] = useState<string>("none");
+  const [labels, setLabels] = useState<string[]>([]);
 
   function resetForm() {
     setType("TASK");
     setSelectedStatus(status);
     setPriority("MEDIUM");
     setEpicId("none");
+    setLabels([]);
     setError(undefined);
   }
 
@@ -100,6 +103,7 @@ export function CreateIssuePanel({
         type,
         priority,
         epicId: epicId === "none" ? undefined : epicId,
+        labels: labels.length > 0 ? labels : undefined,
         order: issueCount,
       });
 
@@ -222,6 +226,16 @@ export function CreateIssuePanel({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Labels */}
+            <div className="space-y-2">
+              <Label>Labels</Label>
+              <LabelInput
+                value={labels}
+                onChange={setLabels}
+                disabled={isPending}
+              />
             </div>
 
             {error && (
