@@ -16,6 +16,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { BoardHeader } from "./board-header";
+import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
 import { IssueCardOverlay } from "./issue-card";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
@@ -56,6 +57,11 @@ export function ProjectBoardContent({
   const [issues, setIssues] = useState(initialIssues);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const previousIssuesRef = useRef<Issue[]>([]);
+  const [filters, setFilters] = useState<BoardFilterState>({
+    priorities: [],
+    types: [],
+    epicIds: [],
+  });
 
   const epicMap: Record<string, string> = {};
   for (const epic of project.epics) {
@@ -67,13 +73,29 @@ export function ProjectBoardContent({
     useSensor(KeyboardSensor),
   );
 
+  const filteredIssues = useMemo(() => {
+    let result = issues;
+    if (filters.priorities.length > 0) {
+      result = result.filter((i) => filters.priorities.includes(i.priority));
+    }
+    if (filters.types.length > 0) {
+      result = result.filter((i) => filters.types.includes(i.type));
+    }
+    if (filters.epicIds.length > 0) {
+      result = result.filter((i) =>
+        filters.epicIds.includes(i.epicId ?? "none"),
+      );
+    }
+    return result;
+  }, [issues, filters]);
+
   const issuesByStatus = useMemo(
     () =>
       COLUMNS.map((column) => ({
         ...column,
-        issues: issues.filter((issue) => issue.status === column.id),
+        issues: filteredIssues.filter((issue) => issue.status === column.id),
       })),
-    [issues],
+    [filteredIssues],
   );
 
   /** Find which column an issue or droppable belongs to */
@@ -273,6 +295,11 @@ export function ProjectBoardContent({
   return (
     <>
       <BoardHeader project={project} onSync={() => router.refresh()} />
+      <BoardFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        epics={project.epics}
+      />
 
       {/* Board */}
       <div className="flex-1 overflow-x-auto p-6">
