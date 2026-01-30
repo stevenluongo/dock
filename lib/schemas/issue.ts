@@ -9,6 +9,7 @@ export const createIssueSchema = z.object({
   type: z.nativeEnum(IssueType).optional(),
   status: z.nativeEnum(IssueStatus).optional(),
   priority: z.nativeEnum(Priority).optional(),
+  order: z.number().int().min(0).optional(),
   labels: z.array(z.string().max(50)).max(20).optional(),
   assignees: z.array(z.string().max(100)).max(10).optional(),
 });
