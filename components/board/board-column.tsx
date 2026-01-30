@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -22,6 +22,8 @@ interface BoardColumnProps {
   projectId: string;
   onIssueCreated?: () => void;
   onIssueClick?: (issue: Issue) => void;
+  autoOpenQuickAdd?: boolean;
+  onQuickAddClose?: () => void;
 }
 
 export function BoardColumn({
@@ -33,6 +35,8 @@ export function BoardColumn({
   projectId,
   onIssueCreated,
   onIssueClick,
+  autoOpenQuickAdd,
+  onQuickAddClose,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -40,6 +44,18 @@ export function BoardColumn({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const issueIds = issues.map((issue) => issue.id);
+
+  function closeQuickAdd() {
+    setQuickAddOpen(false);
+    onQuickAddClose?.();
+  }
+
+  useEffect(() => {
+    if (autoOpenQuickAdd) {
+      setQuickAddOpen(true);
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  }, [autoOpenQuickAdd]);
 
   function handleQuickAdd() {
     const title = inputRef.current?.value.trim();
@@ -55,7 +71,7 @@ export function BoardColumn({
 
       if ("data" in result) {
         if (inputRef.current) inputRef.current.value = "";
-        setQuickAddOpen(false);
+        closeQuickAdd();
         onIssueCreated?.();
       }
     });
@@ -66,7 +82,7 @@ export function BoardColumn({
       e.preventDefault();
       handleQuickAdd();
     } else if (e.key === "Escape") {
-      setQuickAddOpen(false);
+      closeQuickAdd();
     }
   }
 
@@ -107,7 +123,7 @@ export function BoardColumn({
               onKeyDown={handleQuickAddKeyDown}
               onBlur={() => {
                 if (!isPending && !inputRef.current?.value.trim()) {
-                  setQuickAddOpen(false);
+                  closeQuickAdd();
                 }
               }}
               disabled={isPending}

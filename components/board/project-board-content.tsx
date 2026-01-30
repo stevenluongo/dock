@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
@@ -20,6 +20,7 @@ import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
 import { IssueCardOverlay } from "./issue-card";
 import { IssueDetailPanel } from "./issue-detail-panel";
+import { CreateIssuePanel } from "./create-issue-panel";
 import { EditIssuePanel } from "./edit-issue-panel";
 import { DeleteIssueDialog } from "./delete-issue-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
@@ -69,6 +70,35 @@ export function ProjectBoardContent({
     types: [],
     epicIds: [],
   });
+  const [quickAddColumnId, setQuickAddColumnId] = useState<IssueStatus | null>(
+    null,
+  );
+  const [createPanelOpen, setCreatePanelOpen] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        (e.target as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === "c" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setQuickAddColumnId("TODO");
+      } else if (e.key === "n" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setCreatePanelOpen(true);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const epicMap: Record<string, string> = {};
   for (const epic of project.epics) {
@@ -331,9 +361,23 @@ export function ProjectBoardContent({
                 projectId={project.id}
                 onIssueCreated={() => router.refresh()}
                 onIssueClick={setSelectedIssue}
+                autoOpenQuickAdd={quickAddColumnId === column.id}
+                onQuickAddClose={() => setQuickAddColumnId(null)}
               />
             ))}
           </div>
+
+          <p className="text-[11px] text-muted-foreground/40 text-center pt-4">
+            Press{" "}
+            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+              c
+            </kbd>{" "}
+            to quick-add &middot;{" "}
+            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+              n
+            </kbd>{" "}
+            for new issue
+          </p>
 
           <DragOverlay>
             {activeIssue ? (
@@ -389,6 +433,16 @@ export function ProjectBoardContent({
         onOpenChange={(open) => {
           if (!open) setDeletingIssue(null);
         }}
+        onSuccess={() => router.refresh()}
+      />
+
+      <CreateIssuePanel
+        open={createPanelOpen}
+        onOpenChange={setCreatePanelOpen}
+        projectId={project.id}
+        status="BACKLOG"
+        issueCount={issues.filter((i) => i.status === "BACKLOG").length}
+        epics={project.epics}
         onSuccess={() => router.refresh()}
       />
     </>
