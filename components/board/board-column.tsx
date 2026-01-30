@@ -9,8 +9,8 @@ import {
 } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { IssueCard } from "./issue-card";
-import { CreateIssueDialog } from "./create-issue-dialog";
-import type { Issue, IssueStatus } from "@/lib/types/actions";
+import { CreateIssuePanel } from "./create-issue-panel";
+import type { Issue, IssueStatus, EpicWithIssueCounts } from "@/lib/types/actions";
 
 interface BoardColumnProps {
   id: IssueStatus;
@@ -19,6 +19,7 @@ interface BoardColumnProps {
   colorClass: string;
   epicMap: Record<string, string>;
   projectId: string;
+  epics: EpicWithIssueCounts[];
   onIssueCreated?: () => void;
 }
 
@@ -29,6 +30,7 @@ export function BoardColumn({
   colorClass,
   epicMap,
   projectId,
+  epics,
   onIssueCreated,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -80,12 +82,13 @@ export function BoardColumn({
         </SortableContext>
       </div>
 
-      <CreateIssueDialog
+      <CreateIssuePanel
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         projectId={projectId}
         status={id}
         issueCount={issues.length}
+        epics={epics}
         onSuccess={onIssueCreated}
       />
     </div>
