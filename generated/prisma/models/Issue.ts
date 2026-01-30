@@ -27,10 +27,12 @@ export type AggregateIssue = {
 }
 
 export type IssueAvgAggregateOutputType = {
+  order: number | null
   githubIssueNumber: number | null
 }
 
 export type IssueSumAggregateOutputType = {
+  order: number | null
   githubIssueNumber: number | null
 }
 
@@ -43,6 +45,7 @@ export type IssueMinAggregateOutputType = {
   type: $Enums.IssueType | null
   status: $Enums.IssueStatus | null
   priority: $Enums.Priority | null
+  order: number | null
   githubIssueNumber: number | null
   githubState: $Enums.GithubState | null
   createdAt: Date | null
@@ -58,6 +61,7 @@ export type IssueMaxAggregateOutputType = {
   type: $Enums.IssueType | null
   status: $Enums.IssueStatus | null
   priority: $Enums.Priority | null
+  order: number | null
   githubIssueNumber: number | null
   githubState: $Enums.GithubState | null
   createdAt: Date | null
@@ -73,6 +77,7 @@ export type IssueCountAggregateOutputType = {
   type: number
   status: number
   priority: number
+  order: number
   labels: number
   assignees: number
   githubIssueNumber: number
@@ -84,10 +89,12 @@ export type IssueCountAggregateOutputType = {
 
 
 export type IssueAvgAggregateInputType = {
+  order?: true
   githubIssueNumber?: true
 }
 
 export type IssueSumAggregateInputType = {
+  order?: true
   githubIssueNumber?: true
 }
 
@@ -100,6 +107,7 @@ export type IssueMinAggregateInputType = {
   type?: true
   status?: true
   priority?: true
+  order?: true
   githubIssueNumber?: true
   githubState?: true
   createdAt?: true
@@ -115,6 +123,7 @@ export type IssueMaxAggregateInputType = {
   type?: true
   status?: true
   priority?: true
+  order?: true
   githubIssueNumber?: true
   githubState?: true
   createdAt?: true
@@ -130,6 +139,7 @@ export type IssueCountAggregateInputType = {
   type?: true
   status?: true
   priority?: true
+  order?: true
   labels?: true
   assignees?: true
   githubIssueNumber?: true
@@ -234,6 +244,7 @@ export type IssueGroupByOutputType = {
   type: $Enums.IssueType
   status: $Enums.IssueStatus
   priority: $Enums.Priority
+  order: number
   labels: string[]
   assignees: string[]
   githubIssueNumber: number | null
@@ -274,6 +285,7 @@ export type IssueWhereInput = {
   type?: Prisma.EnumIssueTypeFilter<"Issue"> | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFilter<"Issue"> | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFilter<"Issue"> | $Enums.Priority
+  order?: Prisma.IntFilter<"Issue"> | number
   labels?: Prisma.StringNullableListFilter<"Issue">
   assignees?: Prisma.StringNullableListFilter<"Issue">
   githubIssueNumber?: Prisma.IntNullableFilter<"Issue"> | number | null
@@ -293,6 +305,7 @@ export type IssueOrderByWithRelationInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   labels?: Prisma.SortOrder
   assignees?: Prisma.SortOrder
   githubIssueNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -315,6 +328,7 @@ export type IssueWhereUniqueInput = Prisma.AtLeast<{
   type?: Prisma.EnumIssueTypeFilter<"Issue"> | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFilter<"Issue"> | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFilter<"Issue"> | $Enums.Priority
+  order?: Prisma.IntFilter<"Issue"> | number
   labels?: Prisma.StringNullableListFilter<"Issue">
   assignees?: Prisma.StringNullableListFilter<"Issue">
   githubIssueNumber?: Prisma.IntNullableFilter<"Issue"> | number | null
@@ -334,6 +348,7 @@ export type IssueOrderByWithAggregationInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   labels?: Prisma.SortOrder
   assignees?: Prisma.SortOrder
   githubIssueNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -359,6 +374,7 @@ export type IssueScalarWhereWithAggregatesInput = {
   type?: Prisma.EnumIssueTypeWithAggregatesFilter<"Issue"> | $Enums.IssueType
   status?: Prisma.EnumIssueStatusWithAggregatesFilter<"Issue"> | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityWithAggregatesFilter<"Issue"> | $Enums.Priority
+  order?: Prisma.IntWithAggregatesFilter<"Issue"> | number
   labels?: Prisma.StringNullableListFilter<"Issue">
   assignees?: Prisma.StringNullableListFilter<"Issue">
   githubIssueNumber?: Prisma.IntNullableWithAggregatesFilter<"Issue"> | number | null
@@ -374,6 +390,7 @@ export type IssueCreateInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -393,6 +410,7 @@ export type IssueUncheckedCreateInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -408,6 +426,7 @@ export type IssueUpdateInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -427,6 +446,7 @@ export type IssueUncheckedUpdateInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -444,6 +464,7 @@ export type IssueCreateManyInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -459,6 +480,7 @@ export type IssueUpdateManyMutationInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -476,6 +498,7 @@ export type IssueUncheckedUpdateManyInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -511,6 +534,7 @@ export type IssueCountOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   labels?: Prisma.SortOrder
   assignees?: Prisma.SortOrder
   githubIssueNumber?: Prisma.SortOrder
@@ -520,6 +544,7 @@ export type IssueCountOrderByAggregateInput = {
 }
 
 export type IssueAvgOrderByAggregateInput = {
+  order?: Prisma.SortOrder
   githubIssueNumber?: Prisma.SortOrder
 }
 
@@ -532,6 +557,7 @@ export type IssueMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   githubIssueNumber?: Prisma.SortOrder
   githubState?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -547,6 +573,7 @@ export type IssueMinOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   githubIssueNumber?: Prisma.SortOrder
   githubState?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -554,6 +581,7 @@ export type IssueMinOrderByAggregateInput = {
 }
 
 export type IssueSumOrderByAggregateInput = {
+  order?: Prisma.SortOrder
   githubIssueNumber?: Prisma.SortOrder
 }
 
@@ -613,6 +641,14 @@ export type EnumIssueTypeFieldUpdateOperationsInput = {
 
 export type EnumIssueStatusFieldUpdateOperationsInput = {
   set?: $Enums.IssueStatus
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type IssueUpdatelabelsInput = {
@@ -686,6 +722,7 @@ export type IssueCreateWithoutEpicInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -703,6 +740,7 @@ export type IssueUncheckedCreateWithoutEpicInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -749,6 +787,7 @@ export type IssueScalarWhereInput = {
   type?: Prisma.EnumIssueTypeFilter<"Issue"> | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFilter<"Issue"> | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFilter<"Issue"> | $Enums.Priority
+  order?: Prisma.IntFilter<"Issue"> | number
   labels?: Prisma.StringNullableListFilter<"Issue">
   assignees?: Prisma.StringNullableListFilter<"Issue">
   githubIssueNumber?: Prisma.IntNullableFilter<"Issue"> | number | null
@@ -764,6 +803,7 @@ export type IssueCreateWithoutProjectInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -781,6 +821,7 @@ export type IssueUncheckedCreateWithoutProjectInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -823,6 +864,7 @@ export type IssueCreateManyEpicInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -838,6 +880,7 @@ export type IssueUpdateWithoutEpicInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -855,6 +898,7 @@ export type IssueUncheckedUpdateWithoutEpicInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -871,6 +915,7 @@ export type IssueUncheckedUpdateManyWithoutEpicInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -887,6 +932,7 @@ export type IssueCreateManyProjectInput = {
   type?: $Enums.IssueType
   status?: $Enums.IssueStatus
   priority?: $Enums.Priority
+  order?: number
   labels?: Prisma.IssueCreatelabelsInput | string[]
   assignees?: Prisma.IssueCreateassigneesInput | string[]
   githubIssueNumber?: number | null
@@ -902,6 +948,7 @@ export type IssueUpdateWithoutProjectInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -919,6 +966,7 @@ export type IssueUncheckedUpdateWithoutProjectInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -935,6 +983,7 @@ export type IssueUncheckedUpdateManyWithoutProjectInput = {
   type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
   status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   labels?: Prisma.IssueUpdatelabelsInput | string[]
   assignees?: Prisma.IssueUpdateassigneesInput | string[]
   githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -954,6 +1003,7 @@ export type IssueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   type?: boolean
   status?: boolean
   priority?: boolean
+  order?: boolean
   labels?: boolean
   assignees?: boolean
   githubIssueNumber?: boolean
@@ -973,6 +1023,7 @@ export type IssueSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   type?: boolean
   status?: boolean
   priority?: boolean
+  order?: boolean
   labels?: boolean
   assignees?: boolean
   githubIssueNumber?: boolean
@@ -992,6 +1043,7 @@ export type IssueSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   type?: boolean
   status?: boolean
   priority?: boolean
+  order?: boolean
   labels?: boolean
   assignees?: boolean
   githubIssueNumber?: boolean
@@ -1011,6 +1063,7 @@ export type IssueSelectScalar = {
   type?: boolean
   status?: boolean
   priority?: boolean
+  order?: boolean
   labels?: boolean
   assignees?: boolean
   githubIssueNumber?: boolean
@@ -1019,7 +1072,7 @@ export type IssueSelectScalar = {
   updatedAt?: boolean
 }
 
-export type IssueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "epicId" | "title" | "description" | "type" | "status" | "priority" | "labels" | "assignees" | "githubIssueNumber" | "githubState" | "createdAt" | "updatedAt", ExtArgs["result"]["issue"]>
+export type IssueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "epicId" | "title" | "description" | "type" | "status" | "priority" | "order" | "labels" | "assignees" | "githubIssueNumber" | "githubState" | "createdAt" | "updatedAt", ExtArgs["result"]["issue"]>
 export type IssueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   epic?: boolean | Prisma.Issue$epicArgs<ExtArgs>
@@ -1048,6 +1101,7 @@ export type $IssuePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     type: $Enums.IssueType
     status: $Enums.IssueStatus
     priority: $Enums.Priority
+    order: number
     labels: string[]
     assignees: string[]
     githubIssueNumber: number | null
@@ -1487,6 +1541,7 @@ export interface IssueFieldRefs {
   readonly type: Prisma.FieldRef<"Issue", 'IssueType'>
   readonly status: Prisma.FieldRef<"Issue", 'IssueStatus'>
   readonly priority: Prisma.FieldRef<"Issue", 'Priority'>
+  readonly order: Prisma.FieldRef<"Issue", 'Int'>
   readonly labels: Prisma.FieldRef<"Issue", 'String[]'>
   readonly assignees: Prisma.FieldRef<"Issue", 'String[]'>
   readonly githubIssueNumber: Prisma.FieldRef<"Issue", 'Int'>
