@@ -1,6 +1,7 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Issue, IssueType, Priority } from "@/lib/types/actions";
 
 const TYPE_STYLES: Record<IssueType, { label: string; className: string }> = {
@@ -23,10 +24,22 @@ interface IssueCardProps {
 }
 
 export function IssueCard({ issue, epicName }: IssueCardProps) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: issue.id,
     data: { issue },
   });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   const typeStyle = TYPE_STYLES[issue.type];
   const priorityColor = PRIORITY_COLORS[issue.priority];
@@ -34,6 +47,7 @@ export function IssueCard({ issue, epicName }: IssueCardProps) {
   return (
     <div
       ref={setNodeRef}
+      style={style}
       {...listeners}
       {...attributes}
       className={`w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing ${isDragging ? "opacity-30" : ""}`}

@@ -1,6 +1,10 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { IssueCard } from "./issue-card";
 import type { Issue, IssueStatus } from "@/lib/types/actions";
 
@@ -14,6 +18,8 @@ interface BoardColumnProps {
 
 export function BoardColumn({ id, title, issues, colorClass, epicMap }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
+
+  const issueIds = issues.map((issue) => issue.id);
 
   return (
     <div
@@ -29,19 +35,21 @@ export function BoardColumn({ id, title, issues, colorClass, epicMap }: BoardCol
 
       {/* Column body */}
       <div ref={setNodeRef} className="flex-1 overflow-y-auto px-2 pb-2 space-y-2 min-h-24">
-        {issues.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-8">
-            No issues
-          </p>
-        ) : (
-          issues.map((issue) => (
-            <IssueCard
-              key={issue.id}
-              issue={issue}
-              epicName={issue.epicId ? epicMap[issue.epicId] : undefined}
-            />
-          ))
-        )}
+        <SortableContext items={issueIds} strategy={verticalListSortingStrategy}>
+          {issues.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-8">
+              No issues
+            </p>
+          ) : (
+            issues.map((issue) => (
+              <IssueCard
+                key={issue.id}
+                issue={issue}
+                epicName={issue.epicId ? epicMap[issue.epicId] : undefined}
+              />
+            ))
+          )}
+        </SortableContext>
       </div>
     </div>
   );
