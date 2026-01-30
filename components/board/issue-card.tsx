@@ -21,9 +21,10 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 interface IssueCardProps {
   issue: Issue;
   epicName?: string;
+  onClick?: (issue: Issue) => void;
 }
 
-export function IssueCard({ issue, epicName }: IssueCardProps) {
+export function IssueCard({ issue, epicName, onClick }: IssueCardProps) {
   const {
     attributes,
     listeners,
@@ -50,6 +51,7 @@ export function IssueCard({ issue, epicName }: IssueCardProps) {
       style={style}
       {...listeners}
       {...attributes}
+      onClick={() => onClick?.(issue)}
       className={`w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isDragging ? "opacity-30" : ""}`}
     >
       {/* Title */}

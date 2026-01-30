@@ -21,6 +21,7 @@ interface BoardColumnProps {
   projectId: string;
   epics: EpicWithIssueCounts[];
   onIssueCreated?: () => void;
+  onIssueClick?: (issue: Issue) => void;
 }
 
 export function BoardColumn({
@@ -32,6 +33,7 @@ export function BoardColumn({
   projectId,
   epics,
   onIssueCreated,
+  onIssueClick,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -76,6 +78,7 @@ export function BoardColumn({
                 key={issue.id}
                 issue={issue}
                 epicName={issue.epicId ? epicMap[issue.epicId] : undefined}
+                onClick={onIssueClick}
               />
             ))
           )}

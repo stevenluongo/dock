@@ -19,6 +19,7 @@ import { BoardHeader } from "./board-header";
 import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
 import { IssueCardOverlay } from "./issue-card";
+import { IssueDetailPanel } from "./issue-detail-panel";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import type { ProjectWithEpics, Issue, IssueStatus } from "@/lib/types/actions";
@@ -56,6 +57,7 @@ export function ProjectBoardContent({
   const router = useRouter();
   const [issues, setIssues] = useState(initialIssues);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
+  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const previousIssuesRef = useRef<Issue[]>([]);
   const [filters, setFilters] = useState<BoardFilterState>({
     search: "",
@@ -325,6 +327,7 @@ export function ProjectBoardContent({
                 projectId={project.id}
                 epics={project.epics}
                 onIssueCreated={() => router.refresh()}
+                onIssueClick={setSelectedIssue}
               />
             ))}
           </div>
@@ -343,6 +346,20 @@ export function ProjectBoardContent({
           </DragOverlay>
         </DndContext>
       </div>
+
+      <IssueDetailPanel
+        issue={selectedIssue}
+        open={selectedIssue !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedIssue(null);
+        }}
+        epicName={
+          selectedIssue?.epicId
+            ? epicMap[selectedIssue.epicId]
+            : undefined
+        }
+        githubRepo={project.githubRepo}
+      />
     </>
   );
 }
