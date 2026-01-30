@@ -20,6 +20,7 @@ import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
 import { IssueCardOverlay } from "./issue-card";
 import { IssueDetailPanel } from "./issue-detail-panel";
+import { EditIssuePanel } from "./edit-issue-panel";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import type { ProjectWithEpics, Issue, IssueStatus } from "@/lib/types/actions";
@@ -58,6 +59,7 @@ export function ProjectBoardContent({
   const [issues, setIssues] = useState(initialIssues);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
   const previousIssuesRef = useRef<Issue[]>([]);
   const [filters, setFilters] = useState<BoardFilterState>({
     search: "",
@@ -359,6 +361,21 @@ export function ProjectBoardContent({
             : undefined
         }
         githubRepo={project.githubRepo}
+        onEdit={(issue) => {
+          setSelectedIssue(null);
+          setEditingIssue(issue);
+        }}
+      />
+
+      <EditIssuePanel
+        key={editingIssue?.id}
+        issue={editingIssue}
+        open={editingIssue !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingIssue(null);
+        }}
+        epics={project.epics}
+        onSuccess={() => router.refresh()}
       />
     </>
   );
