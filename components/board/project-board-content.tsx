@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
@@ -14,7 +14,7 @@ import {
   type DragEndEvent,
   type DragOverEvent,
 } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
+import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { BoardHeader } from "./board-header";
 import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
@@ -71,7 +71,9 @@ export function ProjectBoardContent({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const filteredIssues = useMemo(() => {
@@ -103,16 +105,6 @@ export function ProjectBoardContent({
     [filteredIssues],
   );
 
-  /** Find which column an issue or droppable belongs to */
-  const findColumnId = useCallback(
-    (id: string): IssueStatus | null => {
-      if (COLUMN_IDS.has(id)) return id as IssueStatus;
-      const issue = issues.find((i) => i.id === id);
-      return issue?.status ?? null;
-    },
-    [issues],
-  );
-
   function handleDragStart(event: DragStartEvent) {
     const issue = event.active.data.current?.issue as Issue | undefined;
     setActiveIssue(issue ?? null);
@@ -123,36 +115,41 @@ export function ProjectBoardContent({
     const { active, over } = event;
     if (!over) return;
 
-    const activeColumnId = findColumnId(active.id as string);
-    const overColumnId = findColumnId(over.id as string);
-
-    if (!activeColumnId || !overColumnId || activeColumnId === overColumnId) {
-      return;
-    }
-
-    // Move issue to a different column optimistically
     const activeId = active.id as string;
+    const overId = over.id as string;
 
+    // All column lookups happen inside the updater so we always
+    // see the latest state, even when onDragOver fires rapidly.
     setIssues((prev) => {
       const activeIssue = prev.find((i) => i.id === activeId);
       if (!activeIssue) return prev;
+
+      let overColumnId: IssueStatus;
+      if (COLUMN_IDS.has(overId)) {
+        overColumnId = overId as IssueStatus;
+      } else {
+        const overIssue = prev.find((i) => i.id === overId);
+        if (!overIssue) return prev;
+        overColumnId = overIssue.status;
+      }
+
+      // Same column — no cross-column move needed
+      if (activeIssue.status === overColumnId) return prev;
 
       // Get the issues in the target column
       const overColumnIssues = prev.filter(
         (i) => i.status === overColumnId && i.id !== activeId,
       );
 
-      // Determine insertion index
+      // Determine insertion order
       let newOrder: number;
-      if (COLUMN_IDS.has(over.id as string)) {
-        // Dropped on the column itself — append to end
+      if (COLUMN_IDS.has(overId)) {
         newOrder =
           overColumnIssues.length > 0
             ? Math.max(...overColumnIssues.map((i) => i.order)) + 1
             : 0;
       } else {
-        // Dropped on a specific issue — insert at that position
-        const overIssue = prev.find((i) => i.id === over.id);
+        const overIssue = prev.find((i) => i.id === overId);
         newOrder = overIssue?.order ?? 0;
       }
 
@@ -218,7 +215,8 @@ export function ProjectBoardContent({
       // Update local state with proper ordering
       setIssues((prev) => {
         const others = prev.filter(
-          (i) => i.status !== targetColumnId && i.id !== activeId,
+          (i) =>
+            i.status !== targetColumnId && i.status !== sourceColumnId,
         );
         const sourceReordered = prev
           .filter((i) => i.status === sourceColumnId && i.id !== activeId)
