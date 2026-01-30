@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -17,6 +15,7 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import { BoardHeader } from "./board-header";
 import { BoardColumn } from "./board-column";
 import { IssueCardOverlay } from "./issue-card";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
@@ -273,17 +272,7 @@ export function ProjectBoardContent({
 
   return (
     <>
-      {/* Header */}
-      <div className="border-b px-6 py-4 space-y-5">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          All Projects
-        </Link>
-        <h1 className="text-xl font-semibold mt-1">{project.name}</h1>
-      </div>
+      <BoardHeader project={project} onSync={() => router.refresh()} />
 
       {/* Board */}
       <div className="flex-1 overflow-x-auto p-6">
