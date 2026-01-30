@@ -59,7 +59,7 @@ export function BoardColumn({
       </div>
 
       {/* Column body */}
-      <div ref={setNodeRef} className="flex-1 overflow-y-auto px-2 pb-2 space-y-2 min-h-24">
+      <div ref={setNodeRef} aria-label={title} className="flex-1 overflow-y-auto px-2 pb-2 space-y-2 min-h-24">
         <SortableContext items={issueIds} strategy={verticalListSortingStrategy}>
           {issues.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 px-3 text-center">

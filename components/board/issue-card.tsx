@@ -50,7 +50,7 @@ export function IssueCard({ issue, epicName }: IssueCardProps) {
       style={style}
       {...listeners}
       {...attributes}
-      className={`w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing ${isDragging ? "opacity-30" : ""}`}
+      className={`w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isDragging ? "opacity-30" : ""}`}
     >
       {/* Title */}
       <p className="text-sm font-medium leading-snug line-clamp-2">
