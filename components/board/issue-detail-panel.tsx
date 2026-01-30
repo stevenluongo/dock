@@ -173,6 +173,35 @@ export function IssueDetailPanel({
             </div>
           )}
 
+          {/* Assignees */}
+          {issue.assignees.length > 0 && (
+            <div className="space-y-1.5">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Assignees
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {issue.assignees.map((username) => (
+                  <a
+                    key={username}
+                    href={`https://github.com/${username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm hover:underline"
+                  >
+                    <img
+                      src={`https://github.com/${username}.png?size=40`}
+                      alt={username}
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                    {username}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* GitHub link */}
           {githubUrl && (
             <div className="space-y-1.5">

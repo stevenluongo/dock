@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
 import { LabelInput } from "@/components/ui/label-input";
+import { AssigneeInput } from "@/components/ui/assignee-input";
 import { Label } from "@/components/ui/label";
 import { createIssue } from "@/app/actions/issues/create-issue-action";
 import type {
@@ -76,6 +77,7 @@ export function CreateIssuePanel({
   const [priority, setPriority] = useState<Priority>("MEDIUM");
   const [epicId, setEpicId] = useState<string>("none");
   const [labels, setLabels] = useState<string[]>([]);
+  const [assignees, setAssignees] = useState<string[]>([]);
 
   function resetForm() {
     setType("TASK");
@@ -83,6 +85,7 @@ export function CreateIssuePanel({
     setPriority("MEDIUM");
     setEpicId("none");
     setLabels([]);
+    setAssignees([]);
     setError(undefined);
   }
 
@@ -104,6 +107,7 @@ export function CreateIssuePanel({
         priority,
         epicId: epicId === "none" ? undefined : epicId,
         labels: labels.length > 0 ? labels : undefined,
+        assignees: assignees.length > 0 ? assignees : undefined,
         order: issueCount,
       });
 
@@ -234,6 +238,16 @@ export function CreateIssuePanel({
               <LabelInput
                 value={labels}
                 onChange={setLabels}
+                disabled={isPending}
+              />
+            </div>
+
+            {/* Assignees */}
+            <div className="space-y-2">
+              <Label>Assignees</Label>
+              <AssigneeInput
+                value={assignees}
+                onChange={setAssignees}
                 disabled={isPending}
               />
             </div>

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MarkdownTextarea } from "@/components/ui/markdown-textarea";
 import { LabelInput } from "@/components/ui/label-input";
+import { AssigneeInput } from "@/components/ui/assignee-input";
 import { Label } from "@/components/ui/label";
 import { updateIssue } from "@/app/actions/issues/update-issue-action";
 import type {
@@ -73,6 +74,7 @@ export function EditIssuePanel({
   const [priority, setPriority] = useState<Priority>(issue?.priority ?? "MEDIUM");
   const [epicId, setEpicId] = useState<string>(issue?.epicId ?? "none");
   const [labels, setLabels] = useState<string[]>(issue?.labels ?? []);
+  const [assignees, setAssignees] = useState<string[]>(issue?.assignees ?? []);
 
   function handleSubmit(formData: FormData) {
     if (!issue) return;
@@ -87,6 +89,7 @@ export function EditIssuePanel({
         priority,
         epicId: epicId === "none" ? null : epicId,
         labels,
+        assignees,
       });
 
       if ("error" in result) {
@@ -216,6 +219,16 @@ export function EditIssuePanel({
               <LabelInput
                 value={labels}
                 onChange={setLabels}
+                disabled={isPending}
+              />
+            </div>
+
+            {/* Assignees */}
+            <div className="space-y-2">
+              <Label>Assignees</Label>
+              <AssigneeInput
+                value={assignees}
+                onChange={setAssignees}
                 disabled={isPending}
               />
             </div>

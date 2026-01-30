@@ -84,9 +84,31 @@ export function IssueCard({ issue, epicName, onClick }: IssueCardProps) {
 
         {/* GitHub issue number */}
         {issue.githubIssueNumber && (
-          <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">
+          <span className="text-[10px] text-muted-foreground tabular-nums">
             #{issue.githubIssueNumber}
           </span>
+        )}
+
+        {/* Assignee avatars */}
+        {issue.assignees.length > 0 && (
+          <div className="flex items-center -space-x-1.5 ml-auto">
+            {issue.assignees.slice(0, 3).map((username) => (
+              <img
+                key={username}
+                src={`https://github.com/${username}.png?size=40`}
+                alt={username}
+                title={username}
+                width={18}
+                height={18}
+                className="rounded-full ring-1 ring-card"
+              />
+            ))}
+            {issue.assignees.length > 3 && (
+              <span className="text-[10px] text-muted-foreground pl-1.5">
+                +{issue.assignees.length - 3}
+              </span>
+            )}
+          </div>
         )}
       </div>
 
