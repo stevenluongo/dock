@@ -109,6 +109,11 @@ export function ProjectBoardContent({
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
+  // Sync local state with server-side props after revalidation
+  useEffect(() => {
+    setIssues(initialIssues);
+  }, [initialIssues]);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName;
