@@ -2,13 +2,13 @@
 
 import { useTransition, useState } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -121,17 +121,17 @@ export function CreateIssuePanel({
   }
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent className="sm:max-w-[480px] overflow-y-auto">
-        <form action={handleSubmit} className="flex flex-col h-full">
-          <SheetHeader>
-            <SheetTitle>New Issue</SheetTitle>
-            <SheetDescription>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
+        <form action={handleSubmit} className="flex flex-col gap-4">
+          <DialogHeader>
+            <DialogTitle>New Issue</DialogTitle>
+            <DialogDescription>
               Fill in the details to create a new issue.
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="flex-1 space-y-4 px-4">
+          <div className="space-y-4">
             {/* Title */}
             <div className="space-y-2">
               <Label htmlFor="title">
@@ -257,7 +257,7 @@ export function CreateIssuePanel({
             )}
           </div>
 
-          <SheetFooter className="flex-row justify-end gap-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -269,9 +269,9 @@ export function CreateIssuePanel({
             <Button type="submit" disabled={isPending}>
               {isPending ? "Creating..." : "Create"}
             </Button>
-          </SheetFooter>
+          </DialogFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
