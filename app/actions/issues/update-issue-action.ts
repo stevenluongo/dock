@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { logIssueChanges } from "@/lib/utils/issue-activity";
 import type { ActionResult, Issue } from "@/lib/types/actions";
@@ -52,6 +53,8 @@ export async function updateIssue(
     });
 
     await logIssueChanges(id, currentIssue, issue);
+
+    revalidatePath(`/projects/${currentIssue.projectId}`);
 
     return { data: issue };
   } catch (error) {

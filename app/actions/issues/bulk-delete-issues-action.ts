@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { ActionResult } from "@/lib/types/actions";
 import {
@@ -19,9 +20,19 @@ export async function bulkDeleteIssues(
       return { error: validated.error.issues[0].message };
     }
 
+    // Fetch projectId before deletion
+    const firstIssue = await prisma.issue.findFirst({
+      where: { id: { in: validated.data.ids } },
+      select: { projectId: true },
+    });
+
     const result = await prisma.issue.deleteMany({
       where: { id: { in: validated.data.ids } },
     });
+
+    if (firstIssue) {
+      revalidatePath(`/projects/${firstIssue.projectId}`);
+    }
 
     return { data: { count: result.count } };
   } catch (error) {

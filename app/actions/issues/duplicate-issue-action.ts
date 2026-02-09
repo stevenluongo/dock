@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { logActivity } from "@/lib/utils/issue-activity";
 import type { ActionResult, Issue } from "@/lib/types/actions";
@@ -38,6 +39,8 @@ export async function duplicateIssue(
     });
 
     await logActivity(issue.id, "CREATED");
+
+    revalidatePath(`/projects/${source.projectId}`);
 
     return { data: issue };
   } catch (error) {

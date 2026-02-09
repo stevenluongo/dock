@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { logActivity } from "@/lib/utils/issue-activity";
 import type { ActionResult } from "@/lib/types/actions";
@@ -56,6 +57,15 @@ export async function bulkUpdateIssues(
       }
     }
     await Promise.all(activityPromises);
+
+    // Revalidate project page (all issues belong to same project)
+    if (currentIssues.length > 0) {
+      const firstIssue = await prisma.issue.findUniqueOrThrow({
+        where: { id: currentIssues[0].id },
+        select: { projectId: true },
+      });
+      revalidatePath(`/projects/${firstIssue.projectId}`);
+    }
 
     return { data: { count: result.count } };
   } catch (error) {
