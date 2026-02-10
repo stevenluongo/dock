@@ -12,10 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProjectForm } from "./project-form";
 import { updateProject } from "@/app/actions/projects/update-project-action";
-import type { ProjectWithIssueCounts } from "@/lib/types/actions";
+import type { Project } from "@/lib/types/actions";
 
 interface EditProjectDialogProps {
-  project: ProjectWithIssueCounts | null;
+  project: Project | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;

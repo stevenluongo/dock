@@ -17,9 +17,10 @@ import type { ProjectWithEpics } from "@/lib/types/actions";
 interface BoardHeaderProps {
   project: ProjectWithEpics;
   onSync?: () => void;
+  onEditProject?: () => void;
 }
 
-export function BoardHeader({ project, onSync }: BoardHeaderProps) {
+export function BoardHeader({ project, onSync, onEditProject }: BoardHeaderProps) {
   const [isSyncing, startTransition] = useTransition();
 
   function handleSync() {
@@ -94,7 +95,7 @@ export function BoardHeader({ project, onSync }: BoardHeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={onEditProject}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit Project
               </DropdownMenuItem>

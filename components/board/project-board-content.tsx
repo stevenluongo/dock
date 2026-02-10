@@ -28,6 +28,7 @@ import { DeleteIssueDialog } from "./delete-issue-dialog";
 import { CreateEpicDialog } from "./create-epic-dialog";
 import { EditEpicDialog } from "./edit-epic-dialog";
 import { DeleteEpicDialog } from "./delete-epic-dialog";
+import { EditProjectDialog } from "../projects/edit-project-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import { reorderEpics } from "@/app/actions/epics/reorder-epics-action";
@@ -91,6 +92,7 @@ export function ProjectBoardContent({
   const [createEpicOpen, setCreateEpicOpen] = useState(false);
   const [editingEpic, setEditingEpic] = useState<EpicWithIssueCounts | null>(null);
   const [deletingEpic, setDeletingEpic] = useState<EpicWithIssueCounts | null>(null);
+  const [editProjectOpen, setEditProjectOpen] = useState(false);
 
   const handleSelect = useCallback((issueId: string, selected: boolean) => {
     setSelectedIds((prev) => {
@@ -456,7 +458,11 @@ export function ProjectBoardContent({
 
   return (
     <>
-      <BoardHeader project={project} onSync={() => router.refresh()} />
+      <BoardHeader
+        project={project}
+        onSync={() => router.refresh()}
+        onEditProject={() => setEditProjectOpen(true)}
+      />
       <BoardFilters
         filters={filters}
         onFiltersChange={setFilters}
@@ -670,6 +676,13 @@ export function ProjectBoardContent({
           setFilters((prev) => ({ ...prev, epicIds: [] }));
           router.refresh();
         }}
+      />
+
+      <EditProjectDialog
+        project={project}
+        open={editProjectOpen}
+        onOpenChange={setEditProjectOpen}
+        onSuccess={() => router.refresh()}
       />
 
       {selectedIds.size > 0 && (
