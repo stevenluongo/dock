@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { createGitHubClient } from "@/lib/github";
+import { createGitHubClient, checkRateLimit, GitHubRateLimitError } from "@/lib/github";
 import {
   fetchGitHubIssues,
   ensureLabelsExist,
@@ -17,6 +17,7 @@ export type SyncSummary = {
   importedCount: number;
   conflictCount: number;
   errors: string[];
+  rateLimitWarning?: string;
   syncedAt: Date;
 };
 
@@ -44,6 +45,20 @@ export async function syncProjectWithGithub(
       octokit = createGitHubClient();
     } catch {
       return { error: "GitHub PAT is not configured. Set GITHUB_PAT in your environment." };
+    }
+
+    // Pre-flight rate limit check
+    const rateLimit = await checkRateLimit(octokit);
+    if (rateLimit.remaining < 50) {
+      const resetMin = Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 60000);
+      return {
+        error: `GitHub API rate limit too low (${rateLimit.remaining}/${rateLimit.limit} remaining). Try again in ${resetMin} minute${resetMin !== 1 ? "s" : ""}.`,
+      };
+    }
+
+    let rateLimitWarning: string | undefined;
+    if (rateLimit.remaining < 200) {
+      rateLimitWarning = `Rate limit: ${rateLimit.remaining}/${rateLimit.limit} requests remaining.`;
     }
 
     // Fetch all GitHub issues once upfront
@@ -97,10 +112,14 @@ export async function syncProjectWithGithub(
           ...updateResult.errors,
           ...pullResult.errors,
         ],
+        rateLimitWarning,
         syncedAt,
       },
     };
   } catch (error) {
+    if (error instanceof GitHubRateLimitError) {
+      return { error: error.message };
+    }
     console.error("Failed to sync with GitHub:", error);
     return { error: "Failed to sync with GitHub" };
   }

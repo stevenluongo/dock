@@ -1,7 +1,7 @@
 import type { Octokit } from "@octokit/rest";
 import type { Issue, IssueType, Priority, GithubState } from "@/lib/types/actions";
 import { prisma } from "@/lib/db";
-import { parseGitHubRepo } from "@/lib/github";
+import { parseGitHubRepo, withRateLimit, GitHubRateLimitError } from "@/lib/github";
 import { logActivity } from "@/lib/utils/issue-activity";
 
 type GitHubIssueData = Awaited<
@@ -13,12 +13,14 @@ export async function fetchGitHubIssues(
   octokit: Octokit,
 ): Promise<GitHubIssueData[]> {
   const { owner, repo } = parseGitHubRepo(githubRepo);
-  return octokit.paginate(octokit.rest.issues.listForRepo, {
-    owner,
-    repo,
-    state: "all",
-    per_page: 100,
-  });
+  return withRateLimit(() =>
+    octokit.paginate(octokit.rest.issues.listForRepo, {
+      owner,
+      repo,
+      state: "all",
+      per_page: 100,
+    }),
+  );
 }
 
 const VALID_TYPES = new Set(["TASK", "STORY", "BUG", "DOCS"]);
@@ -100,9 +102,8 @@ export async function ensureLabelsExist(
     }
   }
 
-  const existingLabels = await octokit.paginate(
-    octokit.rest.issues.listLabelsForRepo,
-    { owner, repo, per_page: 100 },
+  const existingLabels = await withRateLimit(() =>
+    octokit.paginate(octokit.rest.issues.listLabelsForRepo, { owner, repo, per_page: 100 }),
   );
   const existingNames = new Set(
     existingLabels.map((l) => l.name.toLowerCase()),
@@ -112,14 +113,20 @@ export async function ensureLabelsExist(
     if (existingNames.has(label.toLowerCase())) continue;
 
     try {
-      await octokit.rest.issues.createLabel({
-        owner,
-        repo,
-        name: label,
-        color: LABEL_COLORS[label] ?? DEFAULT_LABEL_COLOR,
-      });
+      await withRateLimit(() =>
+        octokit.rest.issues.createLabel({
+          owner,
+          repo,
+          name: label,
+          color: LABEL_COLORS[label] ?? DEFAULT_LABEL_COLOR,
+        }),
+      );
       created++;
     } catch (error) {
+      if (error instanceof GitHubRateLimitError) {
+        errors.push(error.message);
+        break;
+      }
       if ((error as { status?: number }).status === 422) continue;
       const message =
         error instanceof Error ? error.message : "Unknown error";
@@ -146,13 +153,15 @@ export async function pushIssuesToGitHub(
 
   for (const issue of unsyncedIssues) {
     try {
-      const response = await octokit.rest.issues.create({
-        owner,
-        repo,
-        title: issue.title,
-        body: issue.description || "",
-        labels: buildGitHubLabels(issue),
-      });
+      const response = await withRateLimit(() =>
+        octokit.rest.issues.create({
+          owner,
+          repo,
+          title: issue.title,
+          body: issue.description || "",
+          labels: buildGitHubLabels(issue),
+        }),
+      );
 
       await prisma.issue.update({
         where: { id: issue.id },
@@ -172,6 +181,10 @@ export async function pushIssuesToGitHub(
 
       created++;
     } catch (error) {
+      if (error instanceof GitHubRateLimitError) {
+        errors.push(error.message);
+        break;
+      }
       const message =
         error instanceof Error ? error.message : "Unknown error";
       errors.push(`Failed to create GitHub issue for "${issue.title}": ${message}`);
@@ -222,15 +235,17 @@ export async function updateIssuesToGitHub(
     }
 
     try {
-      await octokit.rest.issues.update({
-        owner,
-        repo,
-        issue_number: issue.githubIssueNumber!,
-        title: issue.title,
-        body: issue.description || "",
-        labels: buildGitHubLabels(issue),
-        state: issue.status === "DONE" ? "closed" : "open",
-      });
+      await withRateLimit(() =>
+        octokit.rest.issues.update({
+          owner,
+          repo,
+          issue_number: issue.githubIssueNumber!,
+          title: issue.title,
+          body: issue.description || "",
+          labels: buildGitHubLabels(issue),
+          state: issue.status === "DONE" ? "closed" : "open",
+        }),
+      );
 
       const newGithubState = issue.status === "DONE" ? "CLOSED" : "OPEN";
       if (issue.githubState !== newGithubState) {
@@ -244,6 +259,10 @@ export async function updateIssuesToGitHub(
 
       updated++;
     } catch (error) {
+      if (error instanceof GitHubRateLimitError) {
+        errors.push(error.message);
+        break;
+      }
       const message =
         error instanceof Error ? error.message : "Unknown error";
       errors.push(
