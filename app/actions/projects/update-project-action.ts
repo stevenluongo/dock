@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import type { ActionResult, Project } from "@/lib/types/actions";
+import { validateGitHubRepo } from "@/lib/github";
 import {
   updateProjectSchema,
   type UpdateProjectInput,
@@ -32,11 +33,17 @@ export async function updateProject(
 
     const updateData: Record<string, unknown> = { ...validated.data };
 
-    // Clear githubSyncedAt if githubRepo is changing
+    // Validate and clear githubSyncedAt if githubRepo is changing
     if (
       validated.data.githubRepo !== undefined &&
       validated.data.githubRepo !== currentProject.githubRepo
     ) {
+      if (validated.data.githubRepo && validated.data.githubRepo !== "") {
+        const validation = await validateGitHubRepo(validated.data.githubRepo);
+        if (!validation.valid) {
+          return { error: validation.error! };
+        }
+      }
       updateData.githubSyncedAt = null;
     }
 
