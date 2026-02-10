@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { MarkdownPreview } from "@/components/ui/markdown-preview";
 import { getLabelColor } from "@/lib/utils/label-colors";
@@ -118,24 +118,28 @@ export function IssueDetailPanel({
     });
   }, [issue?.id, open]);
 
-  if (!issue) return null;
-
-  const typeStyle = TYPE_STYLES[issue.type];
-  const priorityStyle = PRIORITY_LABELS[issue.priority];
+  const typeStyle = issue ? TYPE_STYLES[issue.type] : TYPE_STYLES.TASK;
+  const priorityStyle = issue ? PRIORITY_LABELS[issue.priority] : PRIORITY_LABELS.MEDIUM;
   const githubUrl =
-    issue.githubIssueNumber && githubRepo
+    issue?.githubIssueNumber && githubRepo
       ? `https://github.com/${githubRepo}/issues/${issue.githubIssueNumber}`
       : null;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[480px] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="pr-8">{issue.title}</SheetTitle>
-          <SheetDescription className="sr-only">Issue details</SheetDescription>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto"
+      >
+        <DialogHeader>
+          <DialogTitle>{issue?.title ?? "Loading..."}</DialogTitle>
+          <DialogDescription className="sr-only">Issue details</DialogDescription>
+        </DialogHeader>
 
-        <div className="flex-1 space-y-6 px-4">
+        <div className="space-y-6">
+          {!issue ? (
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          ) : (
+            <>
           {/* Action buttons */}
           <div className="flex gap-2">
             <Button
@@ -327,8 +331,10 @@ export function IssueDetailPanel({
               <span>{formatDate(issue.updatedAt)}</span>
             </div>
           </div>
+          </>
+          )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
