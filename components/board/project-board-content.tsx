@@ -538,6 +538,11 @@ export function ProjectBoardContent({
                       ? epicMap[activeIssue.epicId]
                       : undefined
                   }
+                  epicColor={
+                    activeIssue.epicId
+                      ? epics.find((e) => e.id === activeIssue.epicId)?.color
+                      : undefined
+                  }
                 />
               ) : null}
             </DragOverlay>

@@ -4,10 +4,9 @@ import { prisma } from "@/lib/db";
 import type { ActionResult, EpicWithIssueCounts } from "@/lib/types/actions";
 import { IssueStatus } from "@/generated/prisma/client";
 
-
 /**
  * Get all epics for a project with issue counts
- * Sorted by priority (CRITICAL first), then by created date
+ * Sorted by order, then by created date
  */
 export async function getProjectEpics(
   projectId: string

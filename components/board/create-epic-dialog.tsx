@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { createEpic } from "@/app/actions/epics/create-epic-action";
+import { cn } from "@/lib/utils";
 import type { Priority } from "@/lib/types/actions";
 
 const PRIORITIES: { value: Priority; label: string }[] = [
@@ -28,6 +29,11 @@ const PRIORITIES: { value: Priority; label: string }[] = [
   { value: "HIGH", label: "High" },
   { value: "MEDIUM", label: "Medium" },
   { value: "LOW", label: "Low" },
+];
+
+const PRESET_COLORS = [
+  "#ef4444", "#f97316", "#eab308", "#22c55e",
+  "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899",
 ];
 
 interface CreateEpicDialogProps {
@@ -46,9 +52,11 @@ export function CreateEpicDialog({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
   const [priority, setPriority] = useState<Priority>("MEDIUM");
+  const [color, setColor] = useState<string | null>(null);
 
   function resetForm() {
     setPriority("MEDIUM");
+    setColor(null);
     setError(undefined);
   }
 
@@ -66,6 +74,7 @@ export function CreateEpicDialog({
         description: (formData.get("description") as string) || undefined,
         projectId,
         priority,
+        color,
       });
 
       if ("error" in result) {
@@ -128,6 +137,27 @@ export function CreateEpicDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Color</Label>
+              <div className="flex items-center gap-1.5">
+                {PRESET_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={cn(
+                      "h-6 w-6 rounded-full transition-all",
+                      color === c
+                        ? "ring-2 ring-offset-2 ring-offset-background ring-primary scale-110"
+                        : "hover:scale-110",
+                    )}
+                    style={{ backgroundColor: c }}
+                    onClick={() => setColor(color === c ? null : c)}
+                    title={color === c ? "Remove color" : c}
+                  />
+                ))}
+              </div>
             </div>
 
             {error && (

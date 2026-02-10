@@ -148,8 +148,9 @@ function SortableEpicItem({
           <span
             className={cn(
               "h-2 w-2 rounded-full shrink-0",
-              PRIORITY_COLORS[epic.priority],
+              !epic.color && PRIORITY_COLORS[epic.priority],
             )}
+            style={epic.color ? { backgroundColor: epic.color } : undefined}
           />
           <button
             onClick={() => onSelectEpic(epic.id)}
@@ -234,8 +235,9 @@ function EpicItemOverlay({ epic }: { epic: EpicWithIssueCounts }) {
         <span
           className={cn(
             "h-2 w-2 rounded-full shrink-0",
-            PRIORITY_COLORS[epic.priority],
+            !epic.color && PRIORITY_COLORS[epic.priority],
           )}
+          style={epic.color ? { backgroundColor: epic.color } : undefined}
         />
         <span className="text-sm truncate flex-1">{epic.title}</span>
         <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">

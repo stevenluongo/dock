@@ -5,6 +5,7 @@ model Epic {
   description String?
   priority    Priority @default(MEDIUM)
   order       Int      @default(0)
+  color       String?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

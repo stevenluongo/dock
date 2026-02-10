@@ -194,6 +194,7 @@ export function BoardColumn({
                 key={issue.id}
                 issue={issue}
                 epicName={issue.epicId ? epicMap[issue.epicId] : undefined}
+                epicColor={issue.epicId ? epics?.find((e) => e.id === issue.epicId)?.color : undefined}
                 epics={epics}
                 onClick={onIssueClick}
                 onEpicChange={onEpicChange}

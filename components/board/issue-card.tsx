@@ -31,6 +31,7 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 interface IssueCardProps {
   issue: Issue;
   epicName?: string;
+  epicColor?: string | null;
   epics?: EpicWithIssueCounts[];
   onClick?: (issue: Issue) => void;
   onEpicChange?: (issueId: string, epicId: string | null) => void;
@@ -39,7 +40,7 @@ interface IssueCardProps {
   onSelect?: (issueId: string, selected: boolean) => void;
 }
 
-export function IssueCard({ issue, epicName, epics, onClick, onEpicChange, selectable, selected, onSelect }: IssueCardProps) {
+export function IssueCard({ issue, epicName, epicColor, epics, onClick, onEpicChange, selectable, selected, onSelect }: IssueCardProps) {
   const {
     attributes,
     listeners,
@@ -109,10 +110,16 @@ export function IssueCard({ issue, epicName, epics, onClick, onEpicChange, selec
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="text-[10px] text-muted-foreground truncate max-w-30 hover:text-foreground hover:underline transition-colors"
+                className="flex items-center gap-1 text-[10px] text-muted-foreground truncate max-w-30 hover:text-foreground hover:underline transition-colors"
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={(e) => e.stopPropagation()}
               >
+                {epicColor && (
+                  <span
+                    className="h-1.5 w-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: epicColor }}
+                  />
+                )}
                 {epicName ?? "Set epic"}
               </button>
             </DropdownMenuTrigger>
@@ -137,7 +144,13 @@ export function IssueCard({ issue, epicName, epics, onClick, onEpicChange, selec
             </DropdownMenuContent>
           </DropdownMenu>
         ) : epicName ? (
-          <span className="text-[10px] text-muted-foreground truncate max-w-30">
+          <span className="flex items-center gap-1 text-[10px] text-muted-foreground truncate max-w-30">
+            {epicColor && (
+              <span
+                className="h-1.5 w-1.5 rounded-full shrink-0"
+                style={{ backgroundColor: epicColor }}
+              />
+            )}
             {epicName}
           </span>
         ) : null}
@@ -197,7 +210,7 @@ export function IssueCard({ issue, epicName, epics, onClick, onEpicChange, selec
   );
 }
 
-export function IssueCardOverlay({ issue, epicName }: IssueCardProps) {
+export function IssueCardOverlay({ issue, epicName, epicColor }: IssueCardProps) {
   const typeStyle = TYPE_STYLES[issue.type];
   const priorityColor = PRIORITY_COLORS[issue.priority];
 
@@ -214,7 +227,13 @@ export function IssueCardOverlay({ issue, epicName }: IssueCardProps) {
           {typeStyle.label}
         </span>
         {epicName && (
-          <span className="text-[10px] text-muted-foreground truncate max-w-30">
+          <span className="flex items-center gap-1 text-[10px] text-muted-foreground truncate max-w-30">
+            {epicColor && (
+              <span
+                className="h-1.5 w-1.5 rounded-full shrink-0"
+                style={{ backgroundColor: epicColor }}
+              />
+            )}
             {epicName}
           </span>
         )}
