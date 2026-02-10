@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { createGitHubClient } from "@/lib/github";
-import { pushIssuesToGitHub } from "@/lib/github-sync";
+import { pushIssuesToGitHub, pullIssuesFromGitHub } from "@/lib/github-sync";
 import type { ActionResult } from "@/lib/types/actions";
 
 export type SyncSummary = {
@@ -45,7 +45,12 @@ export async function syncProjectWithGithub(
       octokit,
     );
 
-    // TODO: Pull: Fetch GitHub issue states and update local records
+    // Pull: Fetch GitHub issue states and update local records
+    const pullResult = await pullIssuesFromGitHub(
+      projectId,
+      project.githubRepo,
+      octokit,
+    );
 
     // Update sync timestamp
     const syncedAt = new Date();
@@ -57,8 +62,8 @@ export async function syncProjectWithGithub(
     return {
       data: {
         createdCount: pushResult.created,
-        updatedCount: 0,
-        errors: pushResult.errors,
+        updatedCount: pullResult.updated,
+        errors: [...pushResult.errors, ...pullResult.errors],
         syncedAt,
       },
     };
