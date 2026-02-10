@@ -519,6 +519,7 @@ export function ProjectBoardContent({
                   onDeselectAll={handleDeselectAll}
                   epics={epics}
                   onEpicChange={handleEpicChange}
+                  githubRepo={project.githubRepo}
                 />
               ))}
             </div>
