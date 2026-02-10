@@ -19,6 +19,7 @@ import { BoardHeader } from "./board-header";
 import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
 import { BulkActionBar } from "./bulk-action-bar";
+import { EpicSidebar } from "./epic-sidebar";
 import { IssueCardOverlay } from "./issue-card";
 import { IssueDetailPanel } from "./issue-detail-panel";
 import { CreateIssuePanel } from "./create-issue-panel";
@@ -27,7 +28,7 @@ import { DeleteIssueDialog } from "./delete-issue-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
-import type { ProjectWithEpics, Issue, IssueStatus } from "@/lib/types/actions";
+import type { ProjectWithEpics, Issue, IssueStatus, EpicWithIssueCounts } from "@/lib/types/actions";
 
 const COLUMNS: { id: IssueStatus; title: string; colorClass: string }[] = [
   { id: "BACKLOG", title: "Backlog", colorClass: "bg-muted/50" },
@@ -80,6 +81,9 @@ export function ProjectBoardContent({
   const [detailPanelOpen, setDetailPanelOpen] = useState(false);
   const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedEpicId, setSelectedEpicId] = useState<string | null>(null);
+  const [createEpicOpen, setCreateEpicOpen] = useState(false);
+  const [editingEpic, setEditingEpic] = useState<EpicWithIssueCounts | null>(null);
 
   const handleSelect = useCallback((issueId: string, selected: boolean) => {
     setSelectedIds((prev) => {
@@ -110,6 +114,18 @@ export function ProjectBoardContent({
   }, []);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleSelectEpic = useCallback(
+    (epicId: string | null) => {
+      setSelectedEpicId(epicId);
+      if (epicId === null) {
+        setFilters((prev) => ({ ...prev, epicIds: [] }));
+      } else {
+        setFilters((prev) => ({ ...prev, epicIds: [epicId] }));
+      }
+    },
+    [],
+  );
 
   // Sync local state with server-side props after revalidation
   useEffect(() => {
@@ -409,66 +425,77 @@ export function ProjectBoardContent({
         allLabels={allLabels}
       />
 
-      {/* Board */}
-      <div className="flex-1 overflow-x-auto p-6">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex gap-4 h-full">
-            {issuesByStatus.map((column) => (
-              <BoardColumn
-                key={column.id}
-                id={column.id}
-                title={column.title}
-                issues={column.issues}
-                colorClass={column.colorClass}
-                epicMap={epicMap}
-                projectId={project.id}
-                onIssueCreated={() => router.refresh()}
-                onIssueClick={(issue) => {
-                  setSelectedIssue(issue);
-                  setDetailPanelOpen(true);
-                }}
-                autoOpenQuickAdd={quickAddColumnId === column.id}
-                onQuickAddClose={() => setQuickAddColumnId(null)}
-                selectable
-                selectedIds={selectedIds}
-                onSelect={handleSelect}
-                onSelectAll={handleSelectAll}
-                onDeselectAll={handleDeselectAll}
-              />
-            ))}
-          </div>
+      {/* Sidebar + Board */}
+      <div className="flex flex-1 overflow-hidden">
+        <EpicSidebar
+          epics={project.epics}
+          selectedEpicId={selectedEpicId}
+          onSelectEpic={handleSelectEpic}
+          onCreateEpic={() => setCreateEpicOpen(true)}
+          onEditEpic={(epic) => setEditingEpic(epic)}
+        />
 
-          <p className="text-[11px] text-muted-foreground/40 text-center pt-4">
-            Press{" "}
-            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
-              c
-            </kbd>{" "}
-            to quick-add &middot;{" "}
-            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
-              n
-            </kbd>{" "}
-            for new issue
-          </p>
+        {/* Board */}
+        <div className="flex-1 overflow-x-auto p-6">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-4 h-full">
+              {issuesByStatus.map((column) => (
+                <BoardColumn
+                  key={column.id}
+                  id={column.id}
+                  title={column.title}
+                  issues={column.issues}
+                  colorClass={column.colorClass}
+                  epicMap={epicMap}
+                  projectId={project.id}
+                  onIssueCreated={() => router.refresh()}
+                  onIssueClick={(issue) => {
+                    setSelectedIssue(issue);
+                    setDetailPanelOpen(true);
+                  }}
+                  autoOpenQuickAdd={quickAddColumnId === column.id}
+                  onQuickAddClose={() => setQuickAddColumnId(null)}
+                  selectable
+                  selectedIds={selectedIds}
+                  onSelect={handleSelect}
+                  onSelectAll={handleSelectAll}
+                  onDeselectAll={handleDeselectAll}
+                />
+              ))}
+            </div>
 
-          <DragOverlay>
-            {activeIssue ? (
-              <IssueCardOverlay
-                issue={activeIssue}
-                epicName={
-                  activeIssue.epicId
-                    ? epicMap[activeIssue.epicId]
-                    : undefined
-                }
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+            <p className="text-[11px] text-muted-foreground/40 text-center pt-4">
+              Press{" "}
+              <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+                c
+              </kbd>{" "}
+              to quick-add &middot;{" "}
+              <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+                n
+              </kbd>{" "}
+              for new issue
+            </p>
+
+            <DragOverlay>
+              {activeIssue ? (
+                <IssueCardOverlay
+                  issue={activeIssue}
+                  epicName={
+                    activeIssue.epicId
+                      ? epicMap[activeIssue.epicId]
+                      : undefined
+                  }
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
       </div>
 
       <IssueDetailPanel
