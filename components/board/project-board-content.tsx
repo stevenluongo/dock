@@ -27,6 +27,7 @@ import { EditIssuePanel } from "./edit-issue-panel";
 import { DeleteIssueDialog } from "./delete-issue-dialog";
 import { CreateEpicDialog } from "./create-epic-dialog";
 import { EditEpicDialog } from "./edit-epic-dialog";
+import { DeleteEpicDialog } from "./delete-epic-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
@@ -86,6 +87,7 @@ export function ProjectBoardContent({
   const [selectedEpicId, setSelectedEpicId] = useState<string | null>(null);
   const [createEpicOpen, setCreateEpicOpen] = useState(false);
   const [editingEpic, setEditingEpic] = useState<EpicWithIssueCounts | null>(null);
+  const [deletingEpic, setDeletingEpic] = useState<EpicWithIssueCounts | null>(null);
 
   const handleSelect = useCallback((issueId: string, selected: boolean) => {
     setSelectedIds((prev) => {
@@ -603,6 +605,23 @@ export function ProjectBoardContent({
           if (!open) setEditingEpic(null);
         }}
         onSuccess={() => router.refresh()}
+        onDelete={(epic) => {
+          setEditingEpic(null);
+          setTimeout(() => setDeletingEpic(epic), 200);
+        }}
+      />
+
+      <DeleteEpicDialog
+        epic={deletingEpic}
+        open={deletingEpic !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingEpic(null);
+        }}
+        onSuccess={() => {
+          setSelectedEpicId(null);
+          setFilters((prev) => ({ ...prev, epicIds: [] }));
+          router.refresh();
+        }}
       />
 
       {selectedIds.size > 0 && (
