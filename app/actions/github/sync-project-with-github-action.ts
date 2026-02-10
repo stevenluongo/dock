@@ -12,6 +12,7 @@ import type { ActionResult } from "@/lib/types/actions";
 export type SyncSummary = {
   createdCount: number;
   updatedCount: number;
+  importedCount: number;
   errors: string[];
   syncedAt: Date;
 };
@@ -75,6 +76,7 @@ export async function syncProjectWithGithub(
       data: {
         createdCount: pushResult.created,
         updatedCount: updateResult.updated + pullResult.updated,
+        importedCount: pullResult.imported,
         errors: [
           ...pushResult.errors,
           ...updateResult.errors,

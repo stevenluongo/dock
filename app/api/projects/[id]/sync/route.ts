@@ -18,7 +18,7 @@ export async function POST(
     success: true,
     created: data.createdCount,
     updated: data.updatedCount,
-    imported: 0,
+    imported: data.importedCount,
     errors: data.errors,
   });
 }

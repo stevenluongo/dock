@@ -1,8 +1,44 @@
 import type { Octokit } from "@octokit/rest";
-import type { Issue, GithubState } from "@/lib/types/actions";
+import type { Issue, IssueType, Priority, GithubState } from "@/lib/types/actions";
 import { prisma } from "@/lib/db";
 import { parseGitHubRepo } from "@/lib/github";
 import { logActivity } from "@/lib/utils/issue-activity";
+
+const VALID_TYPES = new Set(["TASK", "STORY", "BUG", "DOCS"]);
+const VALID_PRIORITIES = new Set(["CRITICAL", "HIGH", "MEDIUM", "LOW"]);
+
+function parseGitHubLabels(labelObjects: (string | { name?: string })[]): {
+  type: IssueType;
+  priority: Priority;
+  labels: string[];
+} {
+  let type: IssueType = "TASK";
+  let priority: Priority = "MEDIUM";
+  const labels: string[] = [];
+
+  for (const labelObj of labelObjects) {
+    const label = typeof labelObj === "string" ? labelObj : (labelObj.name ?? "");
+    if (label.startsWith("type:")) {
+      const value = label.slice(5).toUpperCase();
+      if (VALID_TYPES.has(value)) {
+        type = value as IssueType;
+      } else {
+        labels.push(label);
+      }
+    } else if (label.startsWith("priority:")) {
+      const value = label.slice(9).toUpperCase();
+      if (VALID_PRIORITIES.has(value)) {
+        priority = value as Priority;
+      } else {
+        labels.push(label);
+      }
+    } else if (label) {
+      labels.push(label);
+    }
+  }
+
+  return { type, priority, labels };
+}
 
 function buildGitHubLabels(issue: Issue): string[] {
   const labels: string[] = [];
@@ -124,18 +160,15 @@ export async function pullIssuesFromGitHub(
   projectId: string,
   githubRepo: string,
   octokit: Octokit,
-): Promise<{ updated: number; errors: string[] }> {
+): Promise<{ updated: number; imported: number; errors: string[] }> {
   const { owner, repo } = parseGitHubRepo(githubRepo);
   const errors: string[] = [];
   let updated = 0;
+  let imported = 0;
 
   const syncedIssues = await prisma.issue.findMany({
     where: { projectId, githubIssueNumber: { not: null } },
   });
-
-  if (syncedIssues.length === 0) {
-    return { updated: 0, errors: [] };
-  }
 
   // Build a map of GitHub issue number → local issue for quick lookup
   const issuesByNumber = new Map<number, Issue>();
@@ -154,50 +187,88 @@ export async function pullIssuesFromGitHub(
       if (ghIssue.pull_request) continue;
 
       const localIssue = issuesByNumber.get(ghIssue.number);
-      if (!localIssue) continue;
 
-      const newGithubState: GithubState =
-        ghIssue.state === "closed" ? "CLOSED" : "OPEN";
-      const stateChanged = localIssue.githubState !== newGithubState;
-      const shouldMarkDone =
-        newGithubState === "CLOSED" && localIssue.status !== "DONE";
+      if (localIssue) {
+        // Update existing synced issue
+        const newGithubState: GithubState =
+          ghIssue.state === "closed" ? "CLOSED" : "OPEN";
+        const stateChanged = localIssue.githubState !== newGithubState;
+        const shouldMarkDone =
+          newGithubState === "CLOSED" && localIssue.status !== "DONE";
 
-      if (!stateChanged && !shouldMarkDone) continue;
+        if (!stateChanged && !shouldMarkDone) continue;
 
-      try {
-        await prisma.issue.update({
-          where: { id: localIssue.id },
-          data: {
-            githubState: newGithubState,
-            ...(shouldMarkDone ? { status: "DONE" } : {}),
-          },
-        });
+        try {
+          await prisma.issue.update({
+            where: { id: localIssue.id },
+            data: {
+              githubState: newGithubState,
+              ...(shouldMarkDone ? { status: "DONE" } : {}),
+            },
+          });
 
-        if (shouldMarkDone) {
+          if (shouldMarkDone) {
+            await logActivity(
+              localIssue.id,
+              "STATUS_CHANGED",
+              "status",
+              localIssue.status,
+              "DONE",
+            );
+          }
+
           await logActivity(
             localIssue.id,
-            "STATUS_CHANGED",
-            "status",
-            localIssue.status,
-            "DONE",
+            "SYNCED",
+            "githubState",
+            localIssue.githubState,
+            newGithubState,
+          );
+
+          updated++;
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Unknown error";
+          errors.push(
+            `Failed to update local issue #${ghIssue.number}: ${message}`,
           );
         }
+      } else {
+        // Import new GitHub issue
+        try {
+          const githubState: GithubState =
+            ghIssue.state === "closed" ? "CLOSED" : "OPEN";
+          const status = githubState === "CLOSED" ? "DONE" : "BACKLOG";
+          const parsed = parseGitHubLabels(ghIssue.labels);
+          const assignees = (ghIssue.assignees ?? [])
+            .map((a) => a.login)
+            .filter(Boolean);
 
-        await logActivity(
-          localIssue.id,
-          "SYNCED",
-          "githubState",
-          localIssue.githubState,
-          newGithubState,
-        );
+          const issue = await prisma.issue.create({
+            data: {
+              projectId,
+              title: ghIssue.title,
+              description: ghIssue.body || null,
+              type: parsed.type,
+              priority: parsed.priority,
+              labels: parsed.labels,
+              assignees,
+              status,
+              githubIssueNumber: ghIssue.number,
+              githubState,
+            },
+          });
 
-        updated++;
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown error";
-        errors.push(
-          `Failed to update local issue #${ghIssue.number}: ${message}`,
-        );
+          await logActivity(issue.id, "CREATED");
+
+          imported++;
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Unknown error";
+          errors.push(
+            `Failed to import GitHub issue #${ghIssue.number}: ${message}`,
+          );
+        }
       }
     }
   } catch (error) {
@@ -205,5 +276,5 @@ export async function pullIssuesFromGitHub(
     errors.push(`Failed to fetch GitHub issues: ${message}`);
   }
 
-  return { updated, errors };
+  return { updated, imported, errors };
 }
