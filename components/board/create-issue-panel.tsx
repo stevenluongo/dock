@@ -122,7 +122,9 @@ export function CreateIssuePanel({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-150 max-h-[90vh] overflow-y-auto"
+      >
         <form action={handleSubmit} className="flex flex-col gap-4">
           <DialogHeader>
             <DialogTitle>New Issue</DialogTitle>
