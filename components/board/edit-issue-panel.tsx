@@ -2,13 +2,13 @@
 
 import { useTransition, useState } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -101,22 +101,26 @@ export function EditIssuePanel({
     });
   }
 
-  if (!issue) return null;
-
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[480px] overflow-y-auto">
-        <form action={handleSubmit} className="flex flex-col h-full">
-          <SheetHeader>
-            <SheetTitle>Edit Issue</SheetTitle>
-            <SheetDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto"
+      >
+        <form action={handleSubmit} className="flex flex-col gap-4">
+          <DialogHeader>
+            <DialogTitle>Edit Issue</DialogTitle>
+            <DialogDescription>
               Update the issue details below.
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="flex-1 space-y-4 px-4">
-            {/* Title */}
-            <div className="space-y-2">
+          <div className="space-y-4">
+            {!issue ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : (
+              <>
+                {/* Title */}
+                <div className="space-y-2">
               <Label htmlFor="edit-title">
                 Title <span className="text-destructive">*</span>
               </Label>
@@ -236,9 +240,11 @@ export function EditIssuePanel({
             {error && (
               <p className="text-sm text-destructive">{error}</p>
             )}
+              </>
+            )}
           </div>
 
-          <SheetFooter className="flex-row justify-end gap-2">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -250,9 +256,9 @@ export function EditIssuePanel({
             <Button type="submit" disabled={isPending}>
               {isPending ? "Saving..." : "Save"}
             </Button>
-          </SheetFooter>
+          </DialogFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
