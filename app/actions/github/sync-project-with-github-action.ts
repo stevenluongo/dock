@@ -1,7 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { getGitHubToken } from "@/lib/github";
+import { createGitHubClient } from "@/lib/github";
+import { pushIssuesToGitHub } from "@/lib/github-sync";
 import type { ActionResult } from "@/lib/types/actions";
 
 export type SyncSummary = {
@@ -13,7 +14,6 @@ export type SyncSummary = {
 
 /**
  * Sync project issues with GitHub
- * TODO: Implement actual GitHub API integration
  */
 export async function syncProjectWithGithub(
   projectId: string
@@ -31,31 +31,35 @@ export async function syncProjectWithGithub(
       return { error: "Project has no GitHub repository configured" };
     }
 
+    let octokit;
     try {
-      getGitHubToken();
+      octokit = createGitHubClient();
     } catch {
       return { error: "GitHub PAT is not configured. Set GITHUB_PAT in your environment." };
     }
 
-    // TODO: Implement GitHub API calls here
-    // 1. Pull: Fetch all issues from GitHub
-    // 2. Match by githubIssueNumber, update local status
-    // 3. Push: For local issues without githubIssueNumber, create in GitHub
-    // 4. Store the GitHub issue number on the local issue
+    // Push: Create GitHub issues for unsynced local issues
+    const pushResult = await pushIssuesToGitHub(
+      projectId,
+      project.githubRepo,
+      octokit,
+    );
+
+    // TODO: Pull: Fetch GitHub issue states and update local records
 
     // Update sync timestamp
+    const syncedAt = new Date();
     await prisma.project.update({
       where: { id: projectId },
-      data: { githubSyncedAt: new Date() },
+      data: { githubSyncedAt: syncedAt },
     });
 
-    // Placeholder return - actual implementation would include real counts
     return {
       data: {
-        createdCount: 0,
+        createdCount: pushResult.created,
         updatedCount: 0,
-        errors: [],
-        syncedAt: new Date(),
+        errors: pushResult.errors,
+        syncedAt,
       },
     };
   } catch (error) {
