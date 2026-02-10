@@ -39,6 +39,7 @@ export function EditProjectDialog({
         name: formData.get("name") as string,
         description: (formData.get("description") as string) || null,
         githubRepo: (formData.get("githubRepo") as string) || null,
+        githubAutoSync: formData.get("githubAutoSync") === "on",
       });
 
       if ("error" in result) {

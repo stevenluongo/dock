@@ -42,6 +42,7 @@ export type ProjectWithIssueCounts = {
   name: string;
   description: string | null;
   githubRepo: string | null;
+  githubAutoSync: boolean;
   githubSyncedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -69,6 +70,7 @@ export type ProjectWithEpics = {
   name: string;
   description: string | null;
   githubRepo: string | null;
+  githubAutoSync: boolean;
   githubSyncedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

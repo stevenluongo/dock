@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { logIssueChanges } from "@/lib/utils/issue-activity";
+import { autoSyncPushIssue } from "@/lib/github-sync";
 import type { ActionResult, Issue } from "@/lib/types/actions";
 import {
   updateIssueSchema,
@@ -53,6 +54,8 @@ export async function updateIssue(
     });
 
     await logIssueChanges(id, currentIssue, issue);
+
+    autoSyncPushIssue(issue.id);
 
     revalidatePath(`/projects/${currentIssue.projectId}`);
 

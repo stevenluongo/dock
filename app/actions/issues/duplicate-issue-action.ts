@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { logActivity } from "@/lib/utils/issue-activity";
+import { autoSyncPushIssue } from "@/lib/github-sync";
 import type { ActionResult, Issue } from "@/lib/types/actions";
 
 /**
@@ -39,6 +40,8 @@ export async function duplicateIssue(
     });
 
     await logActivity(issue.id, "CREATED");
+
+    autoSyncPushIssue(issue.id);
 
     revalidatePath(`/projects/${source.projectId}`);
 

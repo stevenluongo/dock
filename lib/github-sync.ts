@@ -1,7 +1,7 @@
 import type { Octokit } from "@octokit/rest";
 import type { Issue, IssueType, Priority, GithubState } from "@/lib/types/actions";
 import { prisma } from "@/lib/db";
-import { parseGitHubRepo, withRateLimit, GitHubRateLimitError } from "@/lib/github";
+import { createGitHubClient, parseGitHubRepo, withRateLimit, GitHubRateLimitError } from "@/lib/github";
 import { logActivity } from "@/lib/utils/issue-activity";
 
 type GitHubIssueData = Awaited<
@@ -427,4 +427,59 @@ export async function pullIssuesFromGitHub(
   }
 
   return { updated, imported, conflicts, errors };
+}
+
+export async function autoSyncPushIssue(issueId: string): Promise<void> {
+  try {
+    const issue = await prisma.issue.findUnique({
+      where: { id: issueId },
+      include: { project: { select: { githubAutoSync: true, githubRepo: true } } },
+    });
+
+    if (!issue?.project?.githubAutoSync || !issue.project.githubRepo) return;
+
+    let octokit;
+    try {
+      octokit = createGitHubClient();
+    } catch {
+      return;
+    }
+
+    const { owner, repo } = parseGitHubRepo(issue.project.githubRepo);
+    const labels = buildGitHubLabels(issue);
+
+    if (issue.githubIssueNumber) {
+      await withRateLimit(() =>
+        octokit.rest.issues.update({
+          owner,
+          repo,
+          issue_number: issue.githubIssueNumber!,
+          title: issue.title,
+          body: issue.description || "",
+          labels,
+          state: issue.status === "DONE" ? "closed" : "open",
+        }),
+      );
+    } else {
+      const response = await withRateLimit(() =>
+        octokit.rest.issues.create({
+          owner,
+          repo,
+          title: issue.title,
+          body: issue.description || "",
+          labels,
+        }),
+      );
+
+      await prisma.issue.update({
+        where: { id: issueId },
+        data: {
+          githubIssueNumber: response.data.number,
+          githubState: "OPEN",
+        },
+      });
+    }
+  } catch {
+    // Fire-and-forget: silently ignore errors
+  }
 }
