@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import { createGitHubClient } from "@/lib/github";
 import {
+  fetchGitHubIssues,
   pushIssuesToGitHub,
   updateIssuesToGitHub,
   pullIssuesFromGitHub,
@@ -13,6 +14,7 @@ export type SyncSummary = {
   createdCount: number;
   updatedCount: number;
   importedCount: number;
+  conflictCount: number;
   errors: string[];
   syncedAt: Date;
 };
@@ -43,6 +45,12 @@ export async function syncProjectWithGithub(
       return { error: "GitHub PAT is not configured. Set GITHUB_PAT in your environment." };
     }
 
+    // Fetch all GitHub issues once upfront
+    const githubIssues = await fetchGitHubIssues(project.githubRepo, octokit);
+    const ghIssuesByNumber = new Map(
+      githubIssues.map((issue) => [issue.number, issue]),
+    );
+
     // Push: Create GitHub issues for unsynced local issues
     const pushResult = await pushIssuesToGitHub(
       projectId,
@@ -56,13 +64,14 @@ export async function syncProjectWithGithub(
       project.githubRepo,
       octokit,
       project.githubSyncedAt,
+      ghIssuesByNumber,
     );
 
     // Pull: Fetch GitHub issue states and update local records
     const pullResult = await pullIssuesFromGitHub(
       projectId,
-      project.githubRepo,
-      octokit,
+      githubIssues,
+      project.githubSyncedAt,
     );
 
     // Update sync timestamp
@@ -77,6 +86,7 @@ export async function syncProjectWithGithub(
         createdCount: pushResult.created,
         updatedCount: updateResult.updated + pullResult.updated,
         importedCount: pullResult.imported,
+        conflictCount: updateResult.conflicts + pullResult.conflicts,
         errors: [
           ...pushResult.errors,
           ...updateResult.errors,

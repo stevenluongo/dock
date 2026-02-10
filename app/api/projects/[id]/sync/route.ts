@@ -19,6 +19,7 @@ export async function POST(
     created: data.createdCount,
     updated: data.updatedCount,
     imported: data.importedCount,
+    conflicts: data.conflictCount,
     errors: data.errors,
   });
 }
