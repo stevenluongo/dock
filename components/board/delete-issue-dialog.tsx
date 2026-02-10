@@ -18,6 +18,7 @@ interface DeleteIssueDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  onCloseDetail?: () => void;
 }
 
 export function DeleteIssueDialog({
@@ -25,6 +26,7 @@ export function DeleteIssueDialog({
   open,
   onOpenChange,
   onSuccess,
+  onCloseDetail,
 }: DeleteIssueDialogProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -35,6 +37,7 @@ export function DeleteIssueDialog({
       const result = await deleteIssue(issue.id);
       if ("data" in result) {
         onOpenChange(false);
+        onCloseDetail?.();
         onSuccess?.();
       }
     });
