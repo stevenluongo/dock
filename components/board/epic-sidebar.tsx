@@ -7,10 +7,12 @@ import {
   Plus,
   Layers,
   InboxIcon,
+  ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { EpicWithIssueCounts } from "@/lib/types/actions";
+import type { EpicWithIssueCounts, Issue } from "@/lib/types/actions";
 
 const PRIORITY_COLORS: Record<string, string> = {
   CRITICAL: "bg-red-500",
@@ -19,12 +21,23 @@ const PRIORITY_COLORS: Record<string, string> = {
   LOW: "bg-green-500",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  BACKLOG: "Backlog",
+  TODO: "Todo",
+  IN_PROGRESS: "In Progress",
+  DONE: "Done",
+};
+
+const STATUS_ORDER = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"];
+
 interface EpicSidebarProps {
   epics: EpicWithIssueCounts[];
+  issues: Issue[];
   selectedEpicId: string | null;
   onSelectEpic: (epicId: string | null) => void;
   onCreateEpic: () => void;
   onEditEpic: (epic: EpicWithIssueCounts) => void;
+  onIssueClick?: (issue: Issue) => void;
 }
 
 function getTotal(epic: EpicWithIssueCounts) {
@@ -40,15 +53,18 @@ function getProgress(epic: EpicWithIssueCounts) {
 
 export function EpicSidebar({
   epics,
+  issues,
   selectedEpicId,
   onSelectEpic,
   onCreateEpic,
   onEditEpic,
+  onIssueClick,
 }: EpicSidebarProps) {
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("epic-sidebar-collapsed") === "true";
   });
+  const [expandedEpicId, setExpandedEpicId] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem("epic-sidebar-collapsed", String(collapsed));
@@ -134,52 +150,108 @@ export function EpicSidebar({
           const total = getTotal(epic);
           const progress = getProgress(epic);
           const isSelected = selectedEpicId === epic.id;
+          const isExpanded = expandedEpicId === epic.id;
+          const epicIssues = issues.filter((i) => i.epicId === epic.id);
 
           return (
-            <button
-              key={epic.id}
-              onClick={() => onSelectEpic(epic.id)}
-              onDoubleClick={() => onEditEpic(epic)}
-              className={cn(
-                "w-full text-left px-3 py-2 hover:bg-accent/50 transition-colors group",
-                isSelected && "bg-accent text-accent-foreground",
-              )}
-              title={`${epic.title} — ${epic.issueCounts.done} of ${total} done. Double-click to edit.`}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "h-2 w-2 rounded-full shrink-0",
-                    PRIORITY_COLORS[epic.priority],
-                  )}
-                />
-                <span className={cn("text-sm truncate flex-1", isSelected && "font-medium")}>
-                  {epic.title}
-                </span>
-                <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
-                  {epic.issueCounts.done}/{total}
-                </span>
+            <div key={epic.id}>
+              <div
+                className={cn(
+                  "w-full text-left px-3 py-2 hover:bg-accent/50 transition-colors group flex flex-col",
+                  isSelected && "bg-accent text-accent-foreground",
+                )}
+              >
+                <div className="flex items-center gap-1">
+                  {/* Expand toggle */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedEpicId(isExpanded ? null : epic.id);
+                    }}
+                    className="h-4 w-4 shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                  >
+                    {isExpanded ? (
+                      <ChevronDown className="h-3 w-3" />
+                    ) : (
+                      <ChevronRight className="h-3 w-3" />
+                    )}
+                  </button>
+                  <span
+                    className={cn(
+                      "h-2 w-2 rounded-full shrink-0",
+                      PRIORITY_COLORS[epic.priority],
+                    )}
+                  />
+                  <button
+                    onClick={() => onSelectEpic(epic.id)}
+                    onDoubleClick={() => onEditEpic(epic)}
+                    className={cn("text-sm truncate flex-1 text-left", isSelected && "font-medium")}
+                    title={`${epic.title} — ${epic.issueCounts.done} of ${total} done. Double-click to edit.`}
+                  >
+                    {epic.title}
+                  </button>
+                  <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
+                    {epic.issueCounts.done}/{total}
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                {total > 0 && (
+                  <div className="mt-1.5 ml-5">
+                    <div className="h-1 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all",
+                          progress === 100
+                            ? "bg-green-500"
+                            : progress > 0
+                              ? "bg-blue-500"
+                              : "bg-transparent",
+                        )}
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Progress bar */}
-              {total > 0 && (
-                <div className="mt-1.5 ml-4">
-                  <div className="h-1 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all",
-                        progress === 100
-                          ? "bg-green-500"
-                          : progress > 0
-                            ? "bg-blue-500"
-                            : "bg-transparent",
-                      )}
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
+              {/* Expanded detail view */}
+              {isExpanded && (
+                <div className="px-3 pb-2 border-l border-muted ml-[1.1rem]">
+                  {epic.description && (
+                    <p className="text-[11px] text-muted-foreground mb-2 line-clamp-3">
+                      {epic.description}
+                    </p>
+                  )}
+
+                  {epicIssues.length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground italic">No issues</p>
+                  ) : (
+                    STATUS_ORDER.map((status) => {
+                      const statusIssues = epicIssues.filter((i) => i.status === status);
+                      if (statusIssues.length === 0) return null;
+                      return (
+                        <div key={status} className="mb-1.5">
+                          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
+                            {STATUS_LABELS[status]} ({statusIssues.length})
+                          </p>
+                          {statusIssues.map((issue) => (
+                            <button
+                              key={issue.id}
+                              onClick={() => onIssueClick?.(issue)}
+                              className="w-full text-left text-[11px] py-0.5 px-1 rounded hover:bg-accent/50 truncate block transition-colors"
+                              title={issue.title}
+                            >
+                              {issue.title}
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               )}
-            </button>
+            </div>
           );
         })}
 

@@ -444,10 +444,15 @@ export function ProjectBoardContent({
       <div className="flex flex-1 overflow-hidden">
         <EpicSidebar
           epics={project.epics}
+          issues={issues}
           selectedEpicId={selectedEpicId}
           onSelectEpic={handleSelectEpic}
           onCreateEpic={() => setCreateEpicOpen(true)}
           onEditEpic={(epic) => setEditingEpic(epic)}
+          onIssueClick={(issue) => {
+            setSelectedIssue(issue);
+            setDetailPanelOpen(true);
+          }}
         />
 
         {/* Board */}
