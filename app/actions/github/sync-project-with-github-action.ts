@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { getGitHubToken } from "@/lib/github";
 import type { ActionResult } from "@/lib/types/actions";
 
 export type SyncSummary = {
@@ -28,6 +29,12 @@ export async function syncProjectWithGithub(
 
     if (!project.githubRepo) {
       return { error: "Project has no GitHub repository configured" };
+    }
+
+    try {
+      getGitHubToken();
+    } catch {
+      return { error: "GitHub PAT is not configured. Set GITHUB_PAT in your environment." };
     }
 
     // TODO: Implement GitHub API calls here
