@@ -25,6 +25,7 @@ import { IssueDetailPanel } from "./issue-detail-panel";
 import { CreateIssuePanel } from "./create-issue-panel";
 import { EditIssuePanel } from "./edit-issue-panel";
 import { DeleteIssueDialog } from "./delete-issue-dialog";
+import { CreateEpicDialog } from "./create-epic-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
@@ -583,6 +584,13 @@ export function ProjectBoardContent({
         status="BACKLOG"
         issueCount={issues.filter((i) => i.status === "BACKLOG").length}
         epics={project.epics}
+        onSuccess={() => router.refresh()}
+      />
+
+      <CreateEpicDialog
+        open={createEpicOpen}
+        onOpenChange={setCreateEpicOpen}
+        projectId={project.id}
         onSuccess={() => router.refresh()}
       />
 
