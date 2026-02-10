@@ -20,7 +20,7 @@ export async function getProject(
               select: { status: true },
             },
           },
-          orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
+          orderBy: [{ order: "asc" }, { createdAt: "asc" }],
         },
       },
     });

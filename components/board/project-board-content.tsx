@@ -19,15 +19,21 @@ import { BoardHeader } from "./board-header";
 import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
 import { BulkActionBar } from "./bulk-action-bar";
+import { EpicSidebar } from "./epic-sidebar";
 import { IssueCardOverlay } from "./issue-card";
 import { IssueDetailPanel } from "./issue-detail-panel";
 import { CreateIssuePanel } from "./create-issue-panel";
 import { EditIssuePanel } from "./edit-issue-panel";
 import { DeleteIssueDialog } from "./delete-issue-dialog";
+import { CreateEpicDialog } from "./create-epic-dialog";
+import { EditEpicDialog } from "./edit-epic-dialog";
+import { DeleteEpicDialog } from "./delete-epic-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
+import { reorderEpics } from "@/app/actions/epics/reorder-epics-action";
 import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
-import type { ProjectWithEpics, Issue, IssueStatus } from "@/lib/types/actions";
+import { updateIssue } from "@/app/actions/issues/update-issue-action";
+import type { ProjectWithEpics, Issue, IssueStatus, EpicWithIssueCounts } from "@/lib/types/actions";
 
 const COLUMNS: { id: IssueStatus; title: string; colorClass: string }[] = [
   { id: "BACKLOG", title: "Backlog", colorClass: "bg-muted/50" },
@@ -61,6 +67,7 @@ export function ProjectBoardContent({
 }: ProjectBoardContentProps) {
   const router = useRouter();
   const [issues, setIssues] = useState(initialIssues);
+  const [epics, setEpics] = useState(project.epics);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
@@ -80,6 +87,10 @@ export function ProjectBoardContent({
   const [detailPanelOpen, setDetailPanelOpen] = useState(false);
   const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedEpicId, setSelectedEpicId] = useState<string | null>(null);
+  const [createEpicOpen, setCreateEpicOpen] = useState(false);
+  const [editingEpic, setEditingEpic] = useState<EpicWithIssueCounts | null>(null);
+  const [deletingEpic, setDeletingEpic] = useState<EpicWithIssueCounts | null>(null);
 
   const handleSelect = useCallback((issueId: string, selected: boolean) => {
     setSelectedIds((prev) => {
@@ -111,10 +122,54 @@ export function ProjectBoardContent({
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
+  const handleSelectEpic = useCallback(
+    (epicId: string | null) => {
+      setSelectedEpicId(epicId);
+      if (epicId === null) {
+        setFilters((prev) => ({ ...prev, epicIds: [] }));
+      } else {
+        setFilters((prev) => ({ ...prev, epicIds: [epicId] }));
+      }
+    },
+    [],
+  );
+
+  const handleEpicChange = useCallback(
+    async (issueId: string, epicId: string | null) => {
+      const result = await updateIssue(issueId, { epicId });
+      if ("data" in result) {
+        router.refresh();
+      }
+    },
+    [router],
+  );
+
+  const handleReorderEpics = useCallback(
+    async (updates: { id: string; order: number }[]) => {
+      // Optimistically update local state
+      const orderMap = new Map(updates.map((u) => [u.id, u.order]));
+      setEpics((prev) =>
+        [...prev]
+          .map((e) => (orderMap.has(e.id) ? { ...e, order: orderMap.get(e.id)! } : e))
+          .sort((a, b) => a.order - b.order),
+      );
+
+      const result = await reorderEpics({ updates });
+      if ("data" in result) {
+        router.refresh();
+      }
+    },
+    [router],
+  );
+
   // Sync local state with server-side props after revalidation
   useEffect(() => {
     setIssues(initialIssues);
   }, [initialIssues]);
+
+  useEffect(() => {
+    setEpics(project.epics);
+  }, [project.epics]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -154,7 +209,7 @@ export function ProjectBoardContent({
   }, [selectedIds.size, clearSelection]);
 
   const epicMap: Record<string, string> = {};
-  for (const epic of project.epics) {
+  for (const epic of epics) {
     epicMap[epic.id] = epic.title;
   }
 
@@ -405,70 +460,94 @@ export function ProjectBoardContent({
       <BoardFilters
         filters={filters}
         onFiltersChange={setFilters}
-        epics={project.epics}
+        epics={epics}
         allLabels={allLabels}
       />
 
-      {/* Board */}
-      <div className="flex-1 overflow-x-auto p-6">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex gap-4 h-full">
-            {issuesByStatus.map((column) => (
-              <BoardColumn
-                key={column.id}
-                id={column.id}
-                title={column.title}
-                issues={column.issues}
-                colorClass={column.colorClass}
-                epicMap={epicMap}
-                projectId={project.id}
-                onIssueCreated={() => router.refresh()}
-                onIssueClick={(issue) => {
-                  setSelectedIssue(issue);
-                  setDetailPanelOpen(true);
-                }}
-                autoOpenQuickAdd={quickAddColumnId === column.id}
-                onQuickAddClose={() => setQuickAddColumnId(null)}
-                selectable
-                selectedIds={selectedIds}
-                onSelect={handleSelect}
-                onSelectAll={handleSelectAll}
-                onDeselectAll={handleDeselectAll}
-              />
-            ))}
-          </div>
+      {/* Sidebar + Board */}
+      <div className="flex flex-1 overflow-hidden">
+        <EpicSidebar
+          epics={epics}
+          issues={issues}
+          selectedEpicId={selectedEpicId}
+          onSelectEpic={handleSelectEpic}
+          onCreateEpic={() => setCreateEpicOpen(true)}
+          onEditEpic={(epic) => setEditingEpic(epic)}
+          onIssueClick={(issue) => {
+            setSelectedIssue(issue);
+            setDetailPanelOpen(true);
+          }}
+          onReorder={handleReorderEpics}
+        />
 
-          <p className="text-[11px] text-muted-foreground/40 text-center pt-4">
-            Press{" "}
-            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
-              c
-            </kbd>{" "}
-            to quick-add &middot;{" "}
-            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
-              n
-            </kbd>{" "}
-            for new issue
-          </p>
+        {/* Board */}
+        <div className="flex-1 overflow-x-auto p-6">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-4 h-full">
+              {issuesByStatus.map((column) => (
+                <BoardColumn
+                  key={column.id}
+                  id={column.id}
+                  title={column.title}
+                  issues={column.issues}
+                  colorClass={column.colorClass}
+                  epicMap={epicMap}
+                  projectId={project.id}
+                  onIssueCreated={() => router.refresh()}
+                  onIssueClick={(issue) => {
+                    setSelectedIssue(issue);
+                    setDetailPanelOpen(true);
+                  }}
+                  autoOpenQuickAdd={quickAddColumnId === column.id}
+                  onQuickAddClose={() => setQuickAddColumnId(null)}
+                  selectable
+                  selectedIds={selectedIds}
+                  onSelect={handleSelect}
+                  onSelectAll={handleSelectAll}
+                  onDeselectAll={handleDeselectAll}
+                  epics={epics}
+                  onEpicChange={handleEpicChange}
+                />
+              ))}
+            </div>
 
-          <DragOverlay>
-            {activeIssue ? (
-              <IssueCardOverlay
-                issue={activeIssue}
-                epicName={
-                  activeIssue.epicId
-                    ? epicMap[activeIssue.epicId]
-                    : undefined
-                }
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+            <p className="text-[11px] text-muted-foreground/40 text-center pt-4">
+              Press{" "}
+              <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+                c
+              </kbd>{" "}
+              to quick-add &middot;{" "}
+              <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+                n
+              </kbd>{" "}
+              for new issue
+            </p>
+
+            <DragOverlay>
+              {activeIssue ? (
+                <IssueCardOverlay
+                  issue={activeIssue}
+                  epicName={
+                    activeIssue.epicId
+                      ? epicMap[activeIssue.epicId]
+                      : undefined
+                  }
+                  epicColor={
+                    activeIssue.epicId
+                      ? epics.find((e) => e.id === activeIssue.epicId)?.color
+                      : undefined
+                  }
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
       </div>
 
       <IssueDetailPanel
@@ -526,7 +605,7 @@ export function ProjectBoardContent({
             setTimeout(() => setEditingIssue(null), 200);
           }
         }}
-        epics={project.epics}
+        epics={epics}
         onSuccess={() => router.refresh()}
       />
 
@@ -555,8 +634,42 @@ export function ProjectBoardContent({
         projectId={project.id}
         status="BACKLOG"
         issueCount={issues.filter((i) => i.status === "BACKLOG").length}
-        epics={project.epics}
+        epics={epics}
         onSuccess={() => router.refresh()}
+      />
+
+      <CreateEpicDialog
+        open={createEpicOpen}
+        onOpenChange={setCreateEpicOpen}
+        projectId={project.id}
+        onSuccess={() => router.refresh()}
+      />
+
+      <EditEpicDialog
+        key={editingEpic?.id}
+        epic={editingEpic}
+        open={editingEpic !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingEpic(null);
+        }}
+        onSuccess={() => router.refresh()}
+        onDelete={(epic) => {
+          setEditingEpic(null);
+          setTimeout(() => setDeletingEpic(epic), 200);
+        }}
+      />
+
+      <DeleteEpicDialog
+        epic={deletingEpic}
+        open={deletingEpic !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingEpic(null);
+        }}
+        onSuccess={() => {
+          setSelectedEpicId(null);
+          setFilters((prev) => ({ ...prev, epicIds: [] }));
+          router.refresh();
+        }}
       />
 
       {selectedIds.size > 0 && (

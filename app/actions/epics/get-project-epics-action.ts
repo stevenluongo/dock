@@ -2,19 +2,11 @@
 
 import { prisma } from "@/lib/db";
 import type { ActionResult, EpicWithIssueCounts } from "@/lib/types/actions";
-import { IssueStatus, Priority } from "@/generated/prisma/client";
-
-// Priority order map for sorting (CRITICAL first)
-const priorityOrder: Record<Priority, number> = {
-  [Priority.CRITICAL]: 0,
-  [Priority.HIGH]: 1,
-  [Priority.MEDIUM]: 2,
-  [Priority.LOW]: 3,
-};
+import { IssueStatus } from "@/generated/prisma/client";
 
 /**
  * Get all epics for a project with issue counts
- * Sorted by priority (CRITICAL first), then by created date
+ * Sorted by order, then by created date
  */
 export async function getProjectEpics(
   projectId: string
@@ -39,10 +31,10 @@ export async function getProjectEpics(
       },
     });
 
-    // Sort by priority order (CRITICAL first), then by createdAt
+    // Sort by order, then by createdAt
     const sortedEpics = [...epics].sort((a, b) => {
-      const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
-      if (priorityDiff !== 0) return priorityDiff;
+      const orderDiff = a.order - b.order;
+      if (orderDiff !== 0) return orderDiff;
       return a.createdAt.getTime() - b.createdAt.getTime();
     });
 
