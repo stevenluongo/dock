@@ -63,6 +63,63 @@ export async function pushIssuesToGitHub(
   return { created, errors };
 }
 
+export async function updateIssuesToGitHub(
+  projectId: string,
+  githubRepo: string,
+  octokit: Octokit,
+  lastSyncedAt: Date | null,
+): Promise<{ updated: number; errors: string[] }> {
+  const { owner, repo } = parseGitHubRepo(githubRepo);
+  const errors: string[] = [];
+  let updated = 0;
+
+  const where: Record<string, unknown> = {
+    projectId,
+    githubIssueNumber: { not: null },
+  };
+
+  // Only push issues changed since last sync
+  if (lastSyncedAt) {
+    where.updatedAt = { gt: lastSyncedAt };
+  }
+
+  const changedIssues = await prisma.issue.findMany({ where });
+
+  for (const issue of changedIssues) {
+    try {
+      await octokit.rest.issues.update({
+        owner,
+        repo,
+        issue_number: issue.githubIssueNumber!,
+        title: issue.title,
+        body: issue.description || "",
+        labels: buildGitHubLabels(issue),
+        state: issue.status === "DONE" ? "closed" : "open",
+      });
+
+      const newGithubState = issue.status === "DONE" ? "CLOSED" : "OPEN";
+      if (issue.githubState !== newGithubState) {
+        await prisma.issue.update({
+          where: { id: issue.id },
+          data: { githubState: newGithubState },
+        });
+      }
+
+      await logActivity(issue.id, "SYNCED");
+
+      updated++;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown error";
+      errors.push(
+        `Failed to update GitHub issue #${issue.githubIssueNumber}: ${message}`,
+      );
+    }
+  }
+
+  return { updated, errors };
+}
+
 export async function pullIssuesFromGitHub(
   projectId: string,
   githubRepo: string,
