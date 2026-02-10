@@ -30,6 +30,7 @@ import { EditEpicDialog } from "./edit-epic-dialog";
 import { DeleteEpicDialog } from "./delete-epic-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
+import { reorderEpics } from "@/app/actions/epics/reorder-epics-action";
 import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
 import { updateIssue } from "@/app/actions/issues/update-issue-action";
 import type { ProjectWithEpics, Issue, IssueStatus, EpicWithIssueCounts } from "@/lib/types/actions";
@@ -66,6 +67,7 @@ export function ProjectBoardContent({
 }: ProjectBoardContentProps) {
   const router = useRouter();
   const [issues, setIssues] = useState(initialIssues);
+  const [epics, setEpics] = useState(project.epics);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
@@ -142,10 +144,32 @@ export function ProjectBoardContent({
     [router],
   );
 
+  const handleReorderEpics = useCallback(
+    async (updates: { id: string; order: number }[]) => {
+      // Optimistically update local state
+      const orderMap = new Map(updates.map((u) => [u.id, u.order]));
+      setEpics((prev) =>
+        [...prev]
+          .map((e) => (orderMap.has(e.id) ? { ...e, order: orderMap.get(e.id)! } : e))
+          .sort((a, b) => a.order - b.order),
+      );
+
+      const result = await reorderEpics({ updates });
+      if ("data" in result) {
+        router.refresh();
+      }
+    },
+    [router],
+  );
+
   // Sync local state with server-side props after revalidation
   useEffect(() => {
     setIssues(initialIssues);
   }, [initialIssues]);
+
+  useEffect(() => {
+    setEpics(project.epics);
+  }, [project.epics]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -185,7 +209,7 @@ export function ProjectBoardContent({
   }, [selectedIds.size, clearSelection]);
 
   const epicMap: Record<string, string> = {};
-  for (const epic of project.epics) {
+  for (const epic of epics) {
     epicMap[epic.id] = epic.title;
   }
 
@@ -436,14 +460,14 @@ export function ProjectBoardContent({
       <BoardFilters
         filters={filters}
         onFiltersChange={setFilters}
-        epics={project.epics}
+        epics={epics}
         allLabels={allLabels}
       />
 
       {/* Sidebar + Board */}
       <div className="flex flex-1 overflow-hidden">
         <EpicSidebar
-          epics={project.epics}
+          epics={epics}
           issues={issues}
           selectedEpicId={selectedEpicId}
           onSelectEpic={handleSelectEpic}
@@ -453,6 +477,7 @@ export function ProjectBoardContent({
             setSelectedIssue(issue);
             setDetailPanelOpen(true);
           }}
+          onReorder={handleReorderEpics}
         />
 
         {/* Board */}
@@ -486,7 +511,7 @@ export function ProjectBoardContent({
                   onSelect={handleSelect}
                   onSelectAll={handleSelectAll}
                   onDeselectAll={handleDeselectAll}
-                  epics={project.epics}
+                  epics={epics}
                   onEpicChange={handleEpicChange}
                 />
               ))}
@@ -575,7 +600,7 @@ export function ProjectBoardContent({
             setTimeout(() => setEditingIssue(null), 200);
           }
         }}
-        epics={project.epics}
+        epics={epics}
         onSuccess={() => router.refresh()}
       />
 
@@ -604,7 +629,7 @@ export function ProjectBoardContent({
         projectId={project.id}
         status="BACKLOG"
         issueCount={issues.filter((i) => i.status === "BACKLOG").length}
-        epics={project.epics}
+        epics={epics}
         onSuccess={() => router.refresh()}
       />
 

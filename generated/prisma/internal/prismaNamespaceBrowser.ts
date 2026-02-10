@@ -79,6 +79,7 @@ export const EpicScalarFieldEnum = {
   title: 'title',
   description: 'description',
   priority: 'priority',
+  order: 'order',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

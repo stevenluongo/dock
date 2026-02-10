@@ -56,6 +56,7 @@ export type EpicWithIssueCounts = {
   title: string;
   description: string | null;
   priority: Priority;
+  order: number;
   createdAt: Date;
   updatedAt: Date;
   issueCounts: IssueCounts;
@@ -80,6 +81,7 @@ export type EpicWithIssues = {
   title: string;
   description: string | null;
   priority: Priority;
+  order: number;
   createdAt: Date;
   updatedAt: Date;
   issues: Issue[];

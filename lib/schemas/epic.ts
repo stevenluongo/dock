@@ -14,5 +14,17 @@ export const updateEpicSchema = z.object({
   priority: z.nativeEnum(Priority).optional(),
 });
 
+export const reorderEpicsSchema = z.object({
+  updates: z
+    .array(
+      z.object({
+        id: z.string().cuid(),
+        order: z.number().int().min(0),
+      }),
+    )
+    .min(1),
+});
+
 export type CreateEpicInput = z.infer<typeof createEpicSchema>;
 export type UpdateEpicInput = z.infer<typeof updateEpicSchema>;
+export type ReorderEpicsInput = z.infer<typeof reorderEpicsSchema>;

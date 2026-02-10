@@ -20,8 +20,18 @@ export type EpicModel = runtime.Types.Result.DefaultSelection<Prisma.$EpicPayloa
 
 export type AggregateEpic = {
   _count: EpicCountAggregateOutputType | null
+  _avg: EpicAvgAggregateOutputType | null
+  _sum: EpicSumAggregateOutputType | null
   _min: EpicMinAggregateOutputType | null
   _max: EpicMaxAggregateOutputType | null
+}
+
+export type EpicAvgAggregateOutputType = {
+  order: number | null
+}
+
+export type EpicSumAggregateOutputType = {
+  order: number | null
 }
 
 export type EpicMinAggregateOutputType = {
@@ -30,6 +40,7 @@ export type EpicMinAggregateOutputType = {
   title: string | null
   description: string | null
   priority: $Enums.Priority | null
+  order: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -40,6 +51,7 @@ export type EpicMaxAggregateOutputType = {
   title: string | null
   description: string | null
   priority: $Enums.Priority | null
+  order: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,11 +62,20 @@ export type EpicCountAggregateOutputType = {
   title: number
   description: number
   priority: number
+  order: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type EpicAvgAggregateInputType = {
+  order?: true
+}
+
+export type EpicSumAggregateInputType = {
+  order?: true
+}
 
 export type EpicMinAggregateInputType = {
   id?: true
@@ -62,6 +83,7 @@ export type EpicMinAggregateInputType = {
   title?: true
   description?: true
   priority?: true
+  order?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,6 +94,7 @@ export type EpicMaxAggregateInputType = {
   title?: true
   description?: true
   priority?: true
+  order?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +105,7 @@ export type EpicCountAggregateInputType = {
   title?: true
   description?: true
   priority?: true
+  order?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -125,6 +149,18 @@ export type EpicAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: EpicAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: EpicSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: EpicMinAggregateInputType
@@ -155,6 +191,8 @@ export type EpicGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: EpicCountAggregateInputType | true
+  _avg?: EpicAvgAggregateInputType
+  _sum?: EpicSumAggregateInputType
   _min?: EpicMinAggregateInputType
   _max?: EpicMaxAggregateInputType
 }
@@ -165,9 +203,12 @@ export type EpicGroupByOutputType = {
   title: string
   description: string | null
   priority: $Enums.Priority
+  order: number
   createdAt: Date
   updatedAt: Date
   _count: EpicCountAggregateOutputType | null
+  _avg: EpicAvgAggregateOutputType | null
+  _sum: EpicSumAggregateOutputType | null
   _min: EpicMinAggregateOutputType | null
   _max: EpicMaxAggregateOutputType | null
 }
@@ -196,6 +237,7 @@ export type EpicWhereInput = {
   title?: Prisma.StringFilter<"Epic"> | string
   description?: Prisma.StringNullableFilter<"Epic"> | string | null
   priority?: Prisma.EnumPriorityFilter<"Epic"> | $Enums.Priority
+  order?: Prisma.IntFilter<"Epic"> | number
   createdAt?: Prisma.DateTimeFilter<"Epic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Epic"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -208,6 +250,7 @@ export type EpicOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
@@ -223,6 +266,7 @@ export type EpicWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"Epic"> | string
   description?: Prisma.StringNullableFilter<"Epic"> | string | null
   priority?: Prisma.EnumPriorityFilter<"Epic"> | $Enums.Priority
+  order?: Prisma.IntFilter<"Epic"> | number
   createdAt?: Prisma.DateTimeFilter<"Epic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Epic"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -235,11 +279,14 @@ export type EpicOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EpicCountOrderByAggregateInput
+  _avg?: Prisma.EpicAvgOrderByAggregateInput
   _max?: Prisma.EpicMaxOrderByAggregateInput
   _min?: Prisma.EpicMinOrderByAggregateInput
+  _sum?: Prisma.EpicSumOrderByAggregateInput
 }
 
 export type EpicScalarWhereWithAggregatesInput = {
@@ -251,6 +298,7 @@ export type EpicScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Epic"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Epic"> | string | null
   priority?: Prisma.EnumPriorityWithAggregatesFilter<"Epic"> | $Enums.Priority
+  order?: Prisma.IntWithAggregatesFilter<"Epic"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Epic"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Epic"> | Date | string
 }
@@ -260,6 +308,7 @@ export type EpicCreateInput = {
   title: string
   description?: string | null
   priority?: $Enums.Priority
+  order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutEpicsInput
@@ -272,6 +321,7 @@ export type EpicUncheckedCreateInput = {
   title: string
   description?: string | null
   priority?: $Enums.Priority
+  order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   issues?: Prisma.IssueUncheckedCreateNestedManyWithoutEpicInput
@@ -282,6 +332,7 @@ export type EpicUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutEpicsNestedInput
@@ -294,6 +345,7 @@ export type EpicUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   issues?: Prisma.IssueUncheckedUpdateManyWithoutEpicNestedInput
@@ -305,6 +357,7 @@ export type EpicCreateManyInput = {
   title: string
   description?: string | null
   priority?: $Enums.Priority
+  order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -314,6 +367,7 @@ export type EpicUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -324,6 +378,7 @@ export type EpicUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -334,8 +389,13 @@ export type EpicCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type EpicAvgOrderByAggregateInput = {
+  order?: Prisma.SortOrder
 }
 
 export type EpicMaxOrderByAggregateInput = {
@@ -344,6 +404,7 @@ export type EpicMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -354,8 +415,13 @@ export type EpicMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   priority?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type EpicSumOrderByAggregateInput = {
+  order?: Prisma.SortOrder
 }
 
 export type EpicNullableScalarRelationFilter = {
@@ -383,6 +449,14 @@ export type NullableStringFieldUpdateOperationsInput = {
 
 export type EnumPriorityFieldUpdateOperationsInput = {
   set?: $Enums.Priority
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -452,6 +526,7 @@ export type EpicCreateWithoutIssuesInput = {
   title: string
   description?: string | null
   priority?: $Enums.Priority
+  order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutEpicsInput
@@ -463,6 +538,7 @@ export type EpicUncheckedCreateWithoutIssuesInput = {
   title: string
   description?: string | null
   priority?: $Enums.Priority
+  order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -488,6 +564,7 @@ export type EpicUpdateWithoutIssuesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutEpicsNestedInput
@@ -499,6 +576,7 @@ export type EpicUncheckedUpdateWithoutIssuesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -508,6 +586,7 @@ export type EpicCreateWithoutProjectInput = {
   title: string
   description?: string | null
   priority?: $Enums.Priority
+  order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   issues?: Prisma.IssueCreateNestedManyWithoutEpicInput
@@ -518,6 +597,7 @@ export type EpicUncheckedCreateWithoutProjectInput = {
   title: string
   description?: string | null
   priority?: $Enums.Priority
+  order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   issues?: Prisma.IssueUncheckedCreateNestedManyWithoutEpicInput
@@ -558,6 +638,7 @@ export type EpicScalarWhereInput = {
   title?: Prisma.StringFilter<"Epic"> | string
   description?: Prisma.StringNullableFilter<"Epic"> | string | null
   priority?: Prisma.EnumPriorityFilter<"Epic"> | $Enums.Priority
+  order?: Prisma.IntFilter<"Epic"> | number
   createdAt?: Prisma.DateTimeFilter<"Epic"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Epic"> | Date | string
 }
@@ -567,6 +648,7 @@ export type EpicCreateManyProjectInput = {
   title: string
   description?: string | null
   priority?: $Enums.Priority
+  order?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -576,6 +658,7 @@ export type EpicUpdateWithoutProjectInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   issues?: Prisma.IssueUpdateManyWithoutEpicNestedInput
@@ -586,6 +669,7 @@ export type EpicUncheckedUpdateWithoutProjectInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   issues?: Prisma.IssueUncheckedUpdateManyWithoutEpicNestedInput
@@ -596,6 +680,7 @@ export type EpicUncheckedUpdateManyWithoutProjectInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -637,6 +722,7 @@ export type EpicSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   title?: boolean
   description?: boolean
   priority?: boolean
+  order?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -650,6 +736,7 @@ export type EpicSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   title?: boolean
   description?: boolean
   priority?: boolean
+  order?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -661,6 +748,7 @@ export type EpicSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   title?: boolean
   description?: boolean
   priority?: boolean
+  order?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -672,11 +760,12 @@ export type EpicSelectScalar = {
   title?: boolean
   description?: boolean
   priority?: boolean
+  order?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EpicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "title" | "description" | "priority" | "createdAt" | "updatedAt", ExtArgs["result"]["epic"]>
+export type EpicOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "title" | "description" | "priority" | "order" | "createdAt" | "updatedAt", ExtArgs["result"]["epic"]>
 export type EpicInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   issues?: boolean | Prisma.Epic$issuesArgs<ExtArgs>
@@ -701,6 +790,7 @@ export type $EpicPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     title: string
     description: string | null
     priority: $Enums.Priority
+    order: number
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["epic"]>
@@ -1133,6 +1223,7 @@ export interface EpicFieldRefs {
   readonly title: Prisma.FieldRef<"Epic", 'String'>
   readonly description: Prisma.FieldRef<"Epic", 'String'>
   readonly priority: Prisma.FieldRef<"Epic", 'Priority'>
+  readonly order: Prisma.FieldRef<"Epic", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Epic", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Epic", 'DateTime'>
 }
