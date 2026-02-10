@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { logActivity } from "@/lib/utils/issue-activity";
+import { autoSyncPushIssue } from "@/lib/github-sync";
 import type { ActionResult, Issue } from "@/lib/types/actions";
 import {
   updateIssueStatusSchema,
@@ -42,6 +43,8 @@ export async function updateIssueStatus(
     if (currentIssue.status !== validated.data.status) {
       await logActivity(id, "STATUS_CHANGED", "status", currentIssue.status, validated.data.status);
     }
+
+    autoSyncPushIssue(updatedIssue.id);
 
     revalidatePath(`/projects/${currentIssue.projectId}`);
 

@@ -4,15 +4,19 @@ import { useId } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import type { ProjectWithIssueCounts } from "@/lib/types/actions";
+import { formatSyncTime } from "@/lib/utils";
+import type { Project } from "@/lib/types/actions";
 
 interface ProjectFormProps {
-  defaultValues?: Partial<ProjectWithIssueCounts>;
+  defaultValues?: Partial<Project>;
   error?: string;
 }
 
 export function ProjectForm({ defaultValues, error }: ProjectFormProps) {
   const id = useId();
+
+  const hasRepo = !!defaultValues?.githubRepo;
+  const hasSynced = !!defaultValues?.githubSyncedAt;
 
   return (
     <div className="space-y-4">
@@ -51,6 +55,43 @@ export function ProjectForm({ defaultValues, error }: ProjectFormProps) {
         <p className="text-xs text-muted-foreground">
           Format: owner/repo (e.g., vercel/next.js)
         </p>
+
+        {hasRepo && (
+          <>
+            <div className="flex items-center gap-2 text-xs mt-1">
+              {hasSynced ? (
+                <>
+                  <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                  <span className="text-muted-foreground">
+                    Connected &middot; Last synced {formatSyncTime(defaultValues?.githubSyncedAt ?? null)}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="inline-block h-2 w-2 rounded-full bg-yellow-500" />
+                  <span className="text-muted-foreground">Not synced yet</span>
+                </>
+              )}
+            </div>
+
+            <label
+              htmlFor={`${id}-githubAutoSync`}
+              className="flex items-center gap-2 mt-2 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                id={`${id}-githubAutoSync`}
+                name="githubAutoSync"
+                defaultChecked={defaultValues?.githubAutoSync ?? false}
+                className="h-4 w-4 rounded border-border"
+              />
+              <span className="text-sm">Auto-sync</span>
+              <span className="text-xs text-muted-foreground">
+                Push changes to GitHub automatically
+              </span>
+            </label>
+          </>
+        )}
       </div>
     </div>
   );

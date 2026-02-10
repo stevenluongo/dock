@@ -29,6 +29,7 @@ export type ProjectMinAggregateOutputType = {
   name: string | null
   description: string | null
   githubRepo: string | null
+  githubAutoSync: boolean | null
   githubSyncedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -39,6 +40,7 @@ export type ProjectMaxAggregateOutputType = {
   name: string | null
   description: string | null
   githubRepo: string | null
+  githubAutoSync: boolean | null
   githubSyncedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,6 +51,7 @@ export type ProjectCountAggregateOutputType = {
   name: number
   description: number
   githubRepo: number
+  githubAutoSync: number
   githubSyncedAt: number
   createdAt: number
   updatedAt: number
@@ -61,6 +64,7 @@ export type ProjectMinAggregateInputType = {
   name?: true
   description?: true
   githubRepo?: true
+  githubAutoSync?: true
   githubSyncedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -71,6 +75,7 @@ export type ProjectMaxAggregateInputType = {
   name?: true
   description?: true
   githubRepo?: true
+  githubAutoSync?: true
   githubSyncedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +86,7 @@ export type ProjectCountAggregateInputType = {
   name?: true
   description?: true
   githubRepo?: true
+  githubAutoSync?: true
   githubSyncedAt?: true
   createdAt?: true
   updatedAt?: true
@@ -164,6 +170,7 @@ export type ProjectGroupByOutputType = {
   name: string
   description: string | null
   githubRepo: string | null
+  githubAutoSync: boolean
   githubSyncedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -195,6 +202,7 @@ export type ProjectWhereInput = {
   name?: Prisma.StringFilter<"Project"> | string
   description?: Prisma.StringNullableFilter<"Project"> | string | null
   githubRepo?: Prisma.StringNullableFilter<"Project"> | string | null
+  githubAutoSync?: Prisma.BoolFilter<"Project"> | boolean
   githubSyncedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
@@ -207,6 +215,7 @@ export type ProjectOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   githubRepo?: Prisma.SortOrderInput | Prisma.SortOrder
+  githubAutoSync?: Prisma.SortOrder
   githubSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -222,6 +231,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Project"> | string
   description?: Prisma.StringNullableFilter<"Project"> | string | null
   githubRepo?: Prisma.StringNullableFilter<"Project"> | string | null
+  githubAutoSync?: Prisma.BoolFilter<"Project"> | boolean
   githubSyncedAt?: Prisma.DateTimeNullableFilter<"Project"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
@@ -234,6 +244,7 @@ export type ProjectOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   githubRepo?: Prisma.SortOrderInput | Prisma.SortOrder
+  githubAutoSync?: Prisma.SortOrder
   githubSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -250,6 +261,7 @@ export type ProjectScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Project"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   githubRepo?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  githubAutoSync?: Prisma.BoolWithAggregatesFilter<"Project"> | boolean
   githubSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
@@ -260,6 +272,7 @@ export type ProjectCreateInput = {
   name: string
   description?: string | null
   githubRepo?: string | null
+  githubAutoSync?: boolean
   githubSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -272,6 +285,7 @@ export type ProjectUncheckedCreateInput = {
   name: string
   description?: string | null
   githubRepo?: string | null
+  githubAutoSync?: boolean
   githubSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -284,6 +298,7 @@ export type ProjectUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAutoSync?: Prisma.BoolFieldUpdateOperationsInput | boolean
   githubSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -296,6 +311,7 @@ export type ProjectUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAutoSync?: Prisma.BoolFieldUpdateOperationsInput | boolean
   githubSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -308,6 +324,7 @@ export type ProjectCreateManyInput = {
   name: string
   description?: string | null
   githubRepo?: string | null
+  githubAutoSync?: boolean
   githubSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -318,6 +335,7 @@ export type ProjectUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAutoSync?: Prisma.BoolFieldUpdateOperationsInput | boolean
   githubSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -328,6 +346,7 @@ export type ProjectUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAutoSync?: Prisma.BoolFieldUpdateOperationsInput | boolean
   githubSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -343,6 +362,7 @@ export type ProjectCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   githubRepo?: Prisma.SortOrder
+  githubAutoSync?: Prisma.SortOrder
   githubSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -353,6 +373,7 @@ export type ProjectMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   githubRepo?: Prisma.SortOrder
+  githubAutoSync?: Prisma.SortOrder
   githubSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -363,6 +384,7 @@ export type ProjectMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   githubRepo?: Prisma.SortOrder
+  githubAutoSync?: Prisma.SortOrder
   githubSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -396,6 +418,10 @@ export type ProjectUpdateOneRequiredWithoutIssuesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutIssuesInput, Prisma.ProjectUpdateWithoutIssuesInput>, Prisma.ProjectUncheckedUpdateWithoutIssuesInput>
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
@@ -405,6 +431,7 @@ export type ProjectCreateWithoutEpicsInput = {
   name: string
   description?: string | null
   githubRepo?: string | null
+  githubAutoSync?: boolean
   githubSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -416,6 +443,7 @@ export type ProjectUncheckedCreateWithoutEpicsInput = {
   name: string
   description?: string | null
   githubRepo?: string | null
+  githubAutoSync?: boolean
   githubSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -443,6 +471,7 @@ export type ProjectUpdateWithoutEpicsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAutoSync?: Prisma.BoolFieldUpdateOperationsInput | boolean
   githubSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -454,6 +483,7 @@ export type ProjectUncheckedUpdateWithoutEpicsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAutoSync?: Prisma.BoolFieldUpdateOperationsInput | boolean
   githubSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -465,6 +495,7 @@ export type ProjectCreateWithoutIssuesInput = {
   name: string
   description?: string | null
   githubRepo?: string | null
+  githubAutoSync?: boolean
   githubSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -476,6 +507,7 @@ export type ProjectUncheckedCreateWithoutIssuesInput = {
   name: string
   description?: string | null
   githubRepo?: string | null
+  githubAutoSync?: boolean
   githubSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -503,6 +535,7 @@ export type ProjectUpdateWithoutIssuesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAutoSync?: Prisma.BoolFieldUpdateOperationsInput | boolean
   githubSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -514,6 +547,7 @@ export type ProjectUncheckedUpdateWithoutIssuesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAutoSync?: Prisma.BoolFieldUpdateOperationsInput | boolean
   githubSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -565,6 +599,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name?: boolean
   description?: boolean
   githubRepo?: boolean
+  githubAutoSync?: boolean
   githubSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -578,6 +613,7 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   name?: boolean
   description?: boolean
   githubRepo?: boolean
+  githubAutoSync?: boolean
   githubSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -588,6 +624,7 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   name?: boolean
   description?: boolean
   githubRepo?: boolean
+  githubAutoSync?: boolean
   githubSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -598,12 +635,13 @@ export type ProjectSelectScalar = {
   name?: boolean
   description?: boolean
   githubRepo?: boolean
+  githubAutoSync?: boolean
   githubSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "githubRepo" | "githubSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "githubRepo" | "githubAutoSync" | "githubSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   epics?: boolean | Prisma.Project$epicsArgs<ExtArgs>
   issues?: boolean | Prisma.Project$issuesArgs<ExtArgs>
@@ -623,6 +661,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     name: string
     description: string | null
     githubRepo: string | null
+    githubAutoSync: boolean
     githubSyncedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -1055,6 +1094,7 @@ export interface ProjectFieldRefs {
   readonly name: Prisma.FieldRef<"Project", 'String'>
   readonly description: Prisma.FieldRef<"Project", 'String'>
   readonly githubRepo: Prisma.FieldRef<"Project", 'String'>
+  readonly githubAutoSync: Prisma.FieldRef<"Project", 'Boolean'>
   readonly githubSyncedAt: Prisma.FieldRef<"Project", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Project", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Project", 'DateTime'>

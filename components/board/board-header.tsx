@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, Github, MoreVertical, Pencil, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,17 +17,25 @@ import type { ProjectWithEpics } from "@/lib/types/actions";
 interface BoardHeaderProps {
   project: ProjectWithEpics;
   onSync?: () => void;
+  onEditProject?: () => void;
 }
 
-export function BoardHeader({ project, onSync }: BoardHeaderProps) {
+export function BoardHeader({ project, onSync, onEditProject }: BoardHeaderProps) {
   const [isSyncing, startTransition] = useTransition();
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   function handleSync() {
+    setSyncMessage(null);
     startTransition(async () => {
       const result = await syncProjectWithGithub(project.id);
       if ("error" in result) {
-        console.error("Sync failed:", result.error);
+        setSyncMessage(result.error ?? "Sync failed");
+        setTimeout(() => setSyncMessage(null), 10_000);
       } else {
+        if (result.data.rateLimitWarning) {
+          setSyncMessage(result.data.rateLimitWarning);
+          setTimeout(() => setSyncMessage(null), 8_000);
+        }
         onSync?.();
       }
     });
@@ -94,7 +102,7 @@ export function BoardHeader({ project, onSync }: BoardHeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={onEditProject}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit Project
               </DropdownMenuItem>
@@ -102,6 +110,12 @@ export function BoardHeader({ project, onSync }: BoardHeaderProps) {
           </DropdownMenu>
         </div>
       </div>
+
+      {syncMessage && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">
+          {syncMessage}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,18 +1,28 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { createGitHubClient, checkRateLimit, GitHubRateLimitError } from "@/lib/github";
+import {
+  fetchGitHubIssues,
+  ensureLabelsExist,
+  pushIssuesToGitHub,
+  updateIssuesToGitHub,
+  pullIssuesFromGitHub,
+} from "@/lib/github-sync";
 import type { ActionResult } from "@/lib/types/actions";
 
 export type SyncSummary = {
   createdCount: number;
   updatedCount: number;
+  importedCount: number;
+  conflictCount: number;
   errors: string[];
+  rateLimitWarning?: string;
   syncedAt: Date;
 };
 
 /**
  * Sync project issues with GitHub
- * TODO: Implement actual GitHub API integration
  */
 export async function syncProjectWithGithub(
   projectId: string
@@ -30,28 +40,86 @@ export async function syncProjectWithGithub(
       return { error: "Project has no GitHub repository configured" };
     }
 
-    // TODO: Implement GitHub API calls here
-    // 1. Pull: Fetch all issues from GitHub
-    // 2. Match by githubIssueNumber, update local status
-    // 3. Push: For local issues without githubIssueNumber, create in GitHub
-    // 4. Store the GitHub issue number on the local issue
+    let octokit;
+    try {
+      octokit = createGitHubClient();
+    } catch {
+      return { error: "GitHub PAT is not configured. Set GITHUB_PAT in your environment." };
+    }
+
+    // Pre-flight rate limit check
+    const rateLimit = await checkRateLimit(octokit);
+    if (rateLimit.remaining < 50) {
+      const resetMin = Math.ceil((rateLimit.resetAt.getTime() - Date.now()) / 60000);
+      return {
+        error: `GitHub API rate limit too low (${rateLimit.remaining}/${rateLimit.limit} remaining). Try again in ${resetMin} minute${resetMin !== 1 ? "s" : ""}.`,
+      };
+    }
+
+    let rateLimitWarning: string | undefined;
+    if (rateLimit.remaining < 200) {
+      rateLimitWarning = `Rate limit: ${rateLimit.remaining}/${rateLimit.limit} requests remaining.`;
+    }
+
+    // Fetch all GitHub issues once upfront
+    const githubIssues = await fetchGitHubIssues(project.githubRepo, octokit);
+    const ghIssuesByNumber = new Map(
+      githubIssues.map((issue) => [issue.number, issue]),
+    );
+
+    // Ensure all labels exist in GitHub repo with proper colors
+    const labelResult = await ensureLabelsExist(projectId, project.githubRepo, octokit);
+
+    // Push: Create GitHub issues for unsynced local issues
+    const pushResult = await pushIssuesToGitHub(
+      projectId,
+      project.githubRepo,
+      octokit,
+    );
+
+    // Push: Update already-synced issues that changed locally
+    const updateResult = await updateIssuesToGitHub(
+      projectId,
+      project.githubRepo,
+      octokit,
+      project.githubSyncedAt,
+      ghIssuesByNumber,
+    );
+
+    // Pull: Fetch GitHub issue states and update local records
+    const pullResult = await pullIssuesFromGitHub(
+      projectId,
+      githubIssues,
+      project.githubSyncedAt,
+    );
 
     // Update sync timestamp
+    const syncedAt = new Date();
     await prisma.project.update({
       where: { id: projectId },
-      data: { githubSyncedAt: new Date() },
+      data: { githubSyncedAt: syncedAt },
     });
 
-    // Placeholder return - actual implementation would include real counts
     return {
       data: {
-        createdCount: 0,
-        updatedCount: 0,
-        errors: [],
-        syncedAt: new Date(),
+        createdCount: pushResult.created,
+        updatedCount: updateResult.updated + pullResult.updated,
+        importedCount: pullResult.imported,
+        conflictCount: updateResult.conflicts + pullResult.conflicts,
+        errors: [
+          ...labelResult.errors,
+          ...pushResult.errors,
+          ...updateResult.errors,
+          ...pullResult.errors,
+        ],
+        rateLimitWarning,
+        syncedAt,
       },
     };
   } catch (error) {
+    if (error instanceof GitHubRateLimitError) {
+      return { error: error.message };
+    }
     console.error("Failed to sync with GitHub:", error);
     return { error: "Failed to sync with GitHub" };
   }

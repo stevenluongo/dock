@@ -32,6 +32,7 @@ interface BoardColumnProps {
   onDeselectAll?: (issueIds: string[]) => void;
   epics?: EpicWithIssueCounts[];
   onEpicChange?: (issueId: string, epicId: string | null) => void;
+  githubRepo?: string | null;
 }
 
 export function BoardColumn({
@@ -52,6 +53,7 @@ export function BoardColumn({
   onDeselectAll,
   epics,
   onEpicChange,
+  githubRepo,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -196,6 +198,7 @@ export function BoardColumn({
                 epicName={issue.epicId ? epicMap[issue.epicId] : undefined}
                 epicColor={issue.epicId ? epics?.find((e) => e.id === issue.epicId)?.color : undefined}
                 epics={epics}
+                githubRepo={githubRepo}
                 onClick={onIssueClick}
                 onEpicChange={onEpicChange}
                 selectable={selectable}

@@ -3,6 +3,7 @@ model Project {
   name           String
   description    String?
   githubRepo     String?   @map("github_repo")
+  githubAutoSync Boolean   @default(false) @map("github_auto_sync")
   githubSyncedAt DateTime? @map("github_synced_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
