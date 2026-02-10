@@ -26,6 +26,7 @@ import { CreateIssuePanel } from "./create-issue-panel";
 import { EditIssuePanel } from "./edit-issue-panel";
 import { DeleteIssueDialog } from "./delete-issue-dialog";
 import { CreateEpicDialog } from "./create-epic-dialog";
+import { EditEpicDialog } from "./edit-epic-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
@@ -591,6 +592,16 @@ export function ProjectBoardContent({
         open={createEpicOpen}
         onOpenChange={setCreateEpicOpen}
         projectId={project.id}
+        onSuccess={() => router.refresh()}
+      />
+
+      <EditEpicDialog
+        key={editingEpic?.id}
+        epic={editingEpic}
+        open={editingEpic !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingEpic(null);
+        }}
         onSuccess={() => router.refresh()}
       />
 
