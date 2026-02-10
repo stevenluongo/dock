@@ -1,6 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { logActivity } from "@/lib/utils/issue-activity";
 import type { ActionResult, Issue } from "@/lib/types/actions";
 import {
   updateIssueStatusSchema,
@@ -20,12 +22,12 @@ export async function updateIssueStatus(
       return { error: validated.error.issues[0].message };
     }
 
-    const issue = await prisma.issue.findUnique({
+    const currentIssue = await prisma.issue.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, status: true, projectId: true },
     });
 
-    if (!issue) {
+    if (!currentIssue) {
       return { error: "Issue not found" };
     }
 
@@ -36,6 +38,12 @@ export async function updateIssueStatus(
         ...(validated.data.order !== undefined && { order: validated.data.order }),
       },
     });
+
+    if (currentIssue.status !== validated.data.status) {
+      await logActivity(id, "STATUS_CHANGED", "status", currentIssue.status, validated.data.status);
+    }
+
+    revalidatePath(`/projects/${currentIssue.projectId}`);
 
     return { data: updatedIssue };
   } catch (error) {

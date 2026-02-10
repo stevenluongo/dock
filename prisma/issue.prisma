@@ -15,8 +15,9 @@ model Issue {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  epic    Epic?   @relation(fields: [epicId], references: [id], onDelete: SetNull)
+  project    Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  epic       Epic?           @relation(fields: [epicId], references: [id], onDelete: SetNull)
+  activities IssueActivity[]
 
   @@map("issues")
 }

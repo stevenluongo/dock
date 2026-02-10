@@ -1,0 +1,14 @@
+model IssueActivity {
+  id        String       @id @default(cuid())
+  issueId   String       @map("issue_id")
+  action    ActivityType
+  field     String?
+  oldValue  String?      @map("old_value")
+  newValue  String?      @map("new_value")
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId, createdAt])
+  @@map("issue_activities")
+}

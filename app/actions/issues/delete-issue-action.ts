@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { ActionResult } from "@/lib/types/actions";
 
@@ -18,9 +19,13 @@ export async function deleteIssue(
       return { error: "Issue not found" };
     }
 
+    const projectId = issue.projectId;
+
     await prisma.issue.delete({
       where: { id },
     });
+
+    revalidatePath(`/projects/${projectId}`);
 
     return { data: { success: true } };
   } catch (error) {

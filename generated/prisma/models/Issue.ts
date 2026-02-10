@@ -294,6 +294,7 @@ export type IssueWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Issue"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   epic?: Prisma.XOR<Prisma.EpicNullableScalarRelationFilter, Prisma.EpicWhereInput> | null
+  activities?: Prisma.IssueActivityListRelationFilter
 }
 
 export type IssueOrderByWithRelationInput = {
@@ -314,6 +315,7 @@ export type IssueOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
   epic?: Prisma.EpicOrderByWithRelationInput
+  activities?: Prisma.IssueActivityOrderByRelationAggregateInput
 }
 
 export type IssueWhereUniqueInput = Prisma.AtLeast<{
@@ -337,6 +339,7 @@ export type IssueWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Issue"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   epic?: Prisma.XOR<Prisma.EpicNullableScalarRelationFilter, Prisma.EpicWhereInput> | null
+  activities?: Prisma.IssueActivityListRelationFilter
 }, "id">
 
 export type IssueOrderByWithAggregationInput = {
@@ -399,6 +402,7 @@ export type IssueCreateInput = {
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutIssuesInput
   epic?: Prisma.EpicCreateNestedOneWithoutIssuesInput
+  activities?: Prisma.IssueActivityCreateNestedManyWithoutIssueInput
 }
 
 export type IssueUncheckedCreateInput = {
@@ -417,6 +421,7 @@ export type IssueUncheckedCreateInput = {
   githubState?: $Enums.GithubState
   createdAt?: Date | string
   updatedAt?: Date | string
+  activities?: Prisma.IssueActivityUncheckedCreateNestedManyWithoutIssueInput
 }
 
 export type IssueUpdateInput = {
@@ -435,6 +440,7 @@ export type IssueUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutIssuesNestedInput
   epic?: Prisma.EpicUpdateOneWithoutIssuesNestedInput
+  activities?: Prisma.IssueActivityUpdateManyWithoutIssueNestedInput
 }
 
 export type IssueUncheckedUpdateInput = {
@@ -453,6 +459,7 @@ export type IssueUncheckedUpdateInput = {
   githubState?: Prisma.EnumGithubStateFieldUpdateOperationsInput | $Enums.GithubState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activities?: Prisma.IssueActivityUncheckedUpdateManyWithoutIssueNestedInput
 }
 
 export type IssueCreateManyInput = {
@@ -515,6 +522,11 @@ export type IssueListRelationFilter = {
 
 export type IssueOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type IssueScalarRelationFilter = {
+  is?: Prisma.IssueWhereInput
+  isNot?: Prisma.IssueWhereInput
 }
 
 export type StringNullableListFilter<$PrismaModel = never> = {
@@ -627,6 +639,20 @@ export type IssueUncheckedUpdateManyWithoutEpicNestedInput = {
   deleteMany?: Prisma.IssueScalarWhereInput | Prisma.IssueScalarWhereInput[]
 }
 
+export type IssueCreateNestedOneWithoutActivitiesInput = {
+  create?: Prisma.XOR<Prisma.IssueCreateWithoutActivitiesInput, Prisma.IssueUncheckedCreateWithoutActivitiesInput>
+  connectOrCreate?: Prisma.IssueCreateOrConnectWithoutActivitiesInput
+  connect?: Prisma.IssueWhereUniqueInput
+}
+
+export type IssueUpdateOneRequiredWithoutActivitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.IssueCreateWithoutActivitiesInput, Prisma.IssueUncheckedCreateWithoutActivitiesInput>
+  connectOrCreate?: Prisma.IssueCreateOrConnectWithoutActivitiesInput
+  upsert?: Prisma.IssueUpsertWithoutActivitiesInput
+  connect?: Prisma.IssueWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.IssueUpdateToOneWithWhereWithoutActivitiesInput, Prisma.IssueUpdateWithoutActivitiesInput>, Prisma.IssueUncheckedUpdateWithoutActivitiesInput>
+}
+
 export type IssueCreatelabelsInput = {
   set: string[]
 }
@@ -730,6 +756,7 @@ export type IssueCreateWithoutEpicInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutIssuesInput
+  activities?: Prisma.IssueActivityCreateNestedManyWithoutIssueInput
 }
 
 export type IssueUncheckedCreateWithoutEpicInput = {
@@ -747,6 +774,7 @@ export type IssueUncheckedCreateWithoutEpicInput = {
   githubState?: $Enums.GithubState
   createdAt?: Date | string
   updatedAt?: Date | string
+  activities?: Prisma.IssueActivityUncheckedCreateNestedManyWithoutIssueInput
 }
 
 export type IssueCreateOrConnectWithoutEpicInput = {
@@ -796,6 +824,94 @@ export type IssueScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Issue"> | Date | string
 }
 
+export type IssueCreateWithoutActivitiesInput = {
+  id?: string
+  title: string
+  description?: string | null
+  type?: $Enums.IssueType
+  status?: $Enums.IssueStatus
+  priority?: $Enums.Priority
+  order?: number
+  labels?: Prisma.IssueCreatelabelsInput | string[]
+  assignees?: Prisma.IssueCreateassigneesInput | string[]
+  githubIssueNumber?: number | null
+  githubState?: $Enums.GithubState
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project: Prisma.ProjectCreateNestedOneWithoutIssuesInput
+  epic?: Prisma.EpicCreateNestedOneWithoutIssuesInput
+}
+
+export type IssueUncheckedCreateWithoutActivitiesInput = {
+  id?: string
+  projectId: string
+  epicId?: string | null
+  title: string
+  description?: string | null
+  type?: $Enums.IssueType
+  status?: $Enums.IssueStatus
+  priority?: $Enums.Priority
+  order?: number
+  labels?: Prisma.IssueCreatelabelsInput | string[]
+  assignees?: Prisma.IssueCreateassigneesInput | string[]
+  githubIssueNumber?: number | null
+  githubState?: $Enums.GithubState
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type IssueCreateOrConnectWithoutActivitiesInput = {
+  where: Prisma.IssueWhereUniqueInput
+  create: Prisma.XOR<Prisma.IssueCreateWithoutActivitiesInput, Prisma.IssueUncheckedCreateWithoutActivitiesInput>
+}
+
+export type IssueUpsertWithoutActivitiesInput = {
+  update: Prisma.XOR<Prisma.IssueUpdateWithoutActivitiesInput, Prisma.IssueUncheckedUpdateWithoutActivitiesInput>
+  create: Prisma.XOR<Prisma.IssueCreateWithoutActivitiesInput, Prisma.IssueUncheckedCreateWithoutActivitiesInput>
+  where?: Prisma.IssueWhereInput
+}
+
+export type IssueUpdateToOneWithWhereWithoutActivitiesInput = {
+  where?: Prisma.IssueWhereInput
+  data: Prisma.XOR<Prisma.IssueUpdateWithoutActivitiesInput, Prisma.IssueUncheckedUpdateWithoutActivitiesInput>
+}
+
+export type IssueUpdateWithoutActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
+  status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
+  priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  labels?: Prisma.IssueUpdatelabelsInput | string[]
+  assignees?: Prisma.IssueUpdateassigneesInput | string[]
+  githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  githubState?: Prisma.EnumGithubStateFieldUpdateOperationsInput | $Enums.GithubState
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneRequiredWithoutIssuesNestedInput
+  epic?: Prisma.EpicUpdateOneWithoutIssuesNestedInput
+}
+
+export type IssueUncheckedUpdateWithoutActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  epicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumIssueTypeFieldUpdateOperationsInput | $Enums.IssueType
+  status?: Prisma.EnumIssueStatusFieldUpdateOperationsInput | $Enums.IssueStatus
+  priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  labels?: Prisma.IssueUpdatelabelsInput | string[]
+  assignees?: Prisma.IssueUpdateassigneesInput | string[]
+  githubIssueNumber?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  githubState?: Prisma.EnumGithubStateFieldUpdateOperationsInput | $Enums.GithubState
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type IssueCreateWithoutProjectInput = {
   id?: string
   title: string
@@ -811,6 +927,7 @@ export type IssueCreateWithoutProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   epic?: Prisma.EpicCreateNestedOneWithoutIssuesInput
+  activities?: Prisma.IssueActivityCreateNestedManyWithoutIssueInput
 }
 
 export type IssueUncheckedCreateWithoutProjectInput = {
@@ -828,6 +945,7 @@ export type IssueUncheckedCreateWithoutProjectInput = {
   githubState?: $Enums.GithubState
   createdAt?: Date | string
   updatedAt?: Date | string
+  activities?: Prisma.IssueActivityUncheckedCreateNestedManyWithoutIssueInput
 }
 
 export type IssueCreateOrConnectWithoutProjectInput = {
@@ -888,6 +1006,7 @@ export type IssueUpdateWithoutEpicInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutIssuesNestedInput
+  activities?: Prisma.IssueActivityUpdateManyWithoutIssueNestedInput
 }
 
 export type IssueUncheckedUpdateWithoutEpicInput = {
@@ -905,6 +1024,7 @@ export type IssueUncheckedUpdateWithoutEpicInput = {
   githubState?: Prisma.EnumGithubStateFieldUpdateOperationsInput | $Enums.GithubState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activities?: Prisma.IssueActivityUncheckedUpdateManyWithoutIssueNestedInput
 }
 
 export type IssueUncheckedUpdateManyWithoutEpicInput = {
@@ -956,6 +1076,7 @@ export type IssueUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   epic?: Prisma.EpicUpdateOneWithoutIssuesNestedInput
+  activities?: Prisma.IssueActivityUpdateManyWithoutIssueNestedInput
 }
 
 export type IssueUncheckedUpdateWithoutProjectInput = {
@@ -973,6 +1094,7 @@ export type IssueUncheckedUpdateWithoutProjectInput = {
   githubState?: Prisma.EnumGithubStateFieldUpdateOperationsInput | $Enums.GithubState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activities?: Prisma.IssueActivityUncheckedUpdateManyWithoutIssueNestedInput
 }
 
 export type IssueUncheckedUpdateManyWithoutProjectInput = {
@@ -993,6 +1115,35 @@ export type IssueUncheckedUpdateManyWithoutProjectInput = {
 }
 
 
+/**
+ * Count Type IssueCountOutputType
+ */
+
+export type IssueCountOutputType = {
+  activities: number
+}
+
+export type IssueCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  activities?: boolean | IssueCountOutputTypeCountActivitiesArgs
+}
+
+/**
+ * IssueCountOutputType without action
+ */
+export type IssueCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the IssueCountOutputType
+   */
+  select?: Prisma.IssueCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * IssueCountOutputType without action
+ */
+export type IssueCountOutputTypeCountActivitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IssueActivityWhereInput
+}
+
 
 export type IssueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1012,6 +1163,8 @@ export type IssueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   epic?: boolean | Prisma.Issue$epicArgs<ExtArgs>
+  activities?: boolean | Prisma.Issue$activitiesArgs<ExtArgs>
+  _count?: boolean | Prisma.IssueCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["issue"]>
 
 export type IssueSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1076,6 +1229,8 @@ export type IssueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
 export type IssueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   epic?: boolean | Prisma.Issue$epicArgs<ExtArgs>
+  activities?: boolean | Prisma.Issue$activitiesArgs<ExtArgs>
+  _count?: boolean | Prisma.IssueCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type IssueIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -1091,6 +1246,7 @@ export type $IssuePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   objects: {
     project: Prisma.$ProjectPayload<ExtArgs>
     epic: Prisma.$EpicPayload<ExtArgs> | null
+    activities: Prisma.$IssueActivityPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1504,6 +1660,7 @@ export interface Prisma__IssueClient<T, Null = never, ExtArgs extends runtime.Ty
   readonly [Symbol.toStringTag]: "PrismaPromise"
   project<T extends Prisma.ProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   epic<T extends Prisma.Issue$epicArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Issue$epicArgs<ExtArgs>>): Prisma.Prisma__EpicClient<runtime.Types.Result.GetResult<Prisma.$EpicPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  activities<T extends Prisma.Issue$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Issue$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IssueActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1960,6 +2117,30 @@ export type Issue$epicArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    */
   include?: Prisma.EpicInclude<ExtArgs> | null
   where?: Prisma.EpicWhereInput
+}
+
+/**
+ * Issue.activities
+ */
+export type Issue$activitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the IssueActivity
+   */
+  select?: Prisma.IssueActivitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the IssueActivity
+   */
+  omit?: Prisma.IssueActivityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IssueActivityInclude<ExtArgs> | null
+  where?: Prisma.IssueActivityWhereInput
+  orderBy?: Prisma.IssueActivityOrderByWithRelationInput | Prisma.IssueActivityOrderByWithRelationInput[]
+  cursor?: Prisma.IssueActivityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IssueActivityScalarFieldEnum | Prisma.IssueActivityScalarFieldEnum[]
 }
 
 /**

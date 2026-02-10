@@ -1,6 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { logActivity } from "@/lib/utils/issue-activity";
 import type { ActionResult, Issue } from "@/lib/types/actions";
 import {
   createIssueSchema,
@@ -57,6 +59,10 @@ export async function createIssue(
         assignees: data.assignees || [],
       },
     });
+
+    await logActivity(issue.id, "CREATED");
+
+    revalidatePath(`/projects/${issue.projectId}`);
 
     return { data: issue };
   } catch (error) {

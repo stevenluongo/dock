@@ -2,6 +2,8 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Checkbox } from "@/components/ui/checkbox";
+import { getLabelColor } from "@/lib/utils/label-colors";
 import type { Issue, IssueType, Priority } from "@/lib/types/actions";
 
 const TYPE_STYLES: Record<IssueType, { label: string; className: string }> = {
@@ -21,9 +23,13 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 interface IssueCardProps {
   issue: Issue;
   epicName?: string;
+  onClick?: (issue: Issue) => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelect?: (issueId: string, selected: boolean) => void;
 }
 
-export function IssueCard({ issue, epicName }: IssueCardProps) {
+export function IssueCard({ issue, epicName, onClick, selectable, selected, onSelect }: IssueCardProps) {
   const {
     attributes,
     listeners,
@@ -50,10 +56,26 @@ export function IssueCard({ issue, epicName }: IssueCardProps) {
       style={style}
       {...listeners}
       {...attributes}
-      className={`w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isDragging ? "opacity-30" : ""}`}
+      onClick={() => onClick?.(issue)}
+      className={`group/card relative w-full text-left rounded-md border bg-card p-3 shadow-sm hover:shadow-md hover:border-foreground/20 transition-shadow cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isDragging ? "opacity-30" : ""} ${selected ? "ring-2 ring-primary border-primary" : ""}`}
     >
+      {/* Selection checkbox */}
+      {selectable && (
+        <div
+          className={`absolute top-2 right-2 z-10 ${selected ? "opacity-100" : "opacity-0 group-hover/card:opacity-100"} transition-opacity`}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(checked) => onSelect?.(issue.id, !!checked)}
+            aria-label={`Select ${issue.title}`}
+          />
+        </div>
+      )}
+
       {/* Title */}
-      <p className="text-sm font-medium leading-snug line-clamp-2">
+      <p className={`text-sm font-medium leading-snug line-clamp-2 ${selectable ? "pr-6" : ""}`}>
         {issue.title}
       </p>
 
@@ -81,11 +103,55 @@ export function IssueCard({ issue, epicName }: IssueCardProps) {
 
         {/* GitHub issue number */}
         {issue.githubIssueNumber && (
-          <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">
+          <span className="text-[10px] text-muted-foreground tabular-nums">
             #{issue.githubIssueNumber}
           </span>
         )}
+
+        {/* Assignee avatars */}
+        {issue.assignees.length > 0 && (
+          <div className="flex items-center -space-x-1.5 ml-auto">
+            {issue.assignees.slice(0, 3).map((username) => (
+              <img
+                key={username}
+                src={`https://github.com/${username}.png?size=40`}
+                alt={username}
+                title={username}
+                width={18}
+                height={18}
+                className="rounded-full ring-1 ring-card"
+              />
+            ))}
+            {issue.assignees.length > 3 && (
+              <span className="text-[10px] text-muted-foreground pl-1.5">
+                +{issue.assignees.length - 3}
+              </span>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Labels */}
+      {issue.labels.length > 0 && (
+        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+          {issue.labels.slice(0, 3).map((label) => {
+            const color = getLabelColor(label);
+            return (
+              <span
+                key={label}
+                className={`text-[10px] font-medium leading-none px-1.5 py-0.5 rounded ${color.bg} ${color.text}`}
+              >
+                {label}
+              </span>
+            );
+          })}
+          {issue.labels.length > 3 && (
+            <span className="text-[10px] text-muted-foreground">
+              +{issue.labels.length - 3}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
@@ -18,9 +18,15 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { BoardHeader } from "./board-header";
 import { BoardFilters, type BoardFilterState } from "./board-filters";
 import { BoardColumn } from "./board-column";
+import { BulkActionBar } from "./bulk-action-bar";
 import { IssueCardOverlay } from "./issue-card";
+import { IssueDetailPanel } from "./issue-detail-panel";
+import { CreateIssuePanel } from "./create-issue-panel";
+import { EditIssuePanel } from "./edit-issue-panel";
+import { DeleteIssueDialog } from "./delete-issue-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
+import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
 import type { ProjectWithEpics, Issue, IssueStatus } from "@/lib/types/actions";
 
 const COLUMNS: { id: IssueStatus; title: string; colorClass: string }[] = [
@@ -56,18 +62,111 @@ export function ProjectBoardContent({
   const router = useRouter();
   const [issues, setIssues] = useState(initialIssues);
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
+  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
+  const [deletingIssue, setDeletingIssue] = useState<Issue | null>(null);
   const previousIssuesRef = useRef<Issue[]>([]);
   const [filters, setFilters] = useState<BoardFilterState>({
     search: "",
     priorities: [],
     types: [],
     epicIds: [],
+    labels: [],
   });
+  const [quickAddColumnId, setQuickAddColumnId] = useState<IssueStatus | null>(
+    null,
+  );
+  const [createPanelOpen, setCreatePanelOpen] = useState(false);
+  const [detailPanelOpen, setDetailPanelOpen] = useState(false);
+  const [editPanelOpen, setEditPanelOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const handleSelect = useCallback((issueId: string, selected: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (selected) {
+        next.add(issueId);
+      } else {
+        next.delete(issueId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback((_columnId: IssueStatus, issueIds: string[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of issueIds) next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleDeselectAll = useCallback((issueIds: string[]) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of issueIds) next.delete(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  // Sync local state with server-side props after revalidation
+  useEffect(() => {
+    setIssues(initialIssues);
+  }, [initialIssues]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        (e.target as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === "Escape" && selectedIds.size > 0) {
+        e.preventDefault();
+        clearSelection();
+        return;
+      }
+
+      if (e.key === "c" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setQuickAddColumnId("TODO");
+      } else if (e.key === "n" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        // Close any open modals before opening create
+        setDetailPanelOpen(false);
+        setEditPanelOpen(false);
+        setSelectedIssue(null);
+        setEditingIssue(null);
+        setDeletingIssue(null);
+        setCreatePanelOpen(true);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIds.size, clearSelection]);
 
   const epicMap: Record<string, string> = {};
   for (const epic of project.epics) {
     epicMap[epic.id] = epic.title;
   }
+
+  const allLabels = useMemo(() => {
+    const set = new Set<string>();
+    for (const issue of issues) {
+      for (const label of issue.labels) {
+        set.add(label);
+      }
+    }
+    return Array.from(set).sort();
+  }, [issues]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -91,6 +190,11 @@ export function ProjectBoardContent({
     if (filters.epicIds.length > 0) {
       result = result.filter((i) =>
         filters.epicIds.includes(i.epicId ?? "none"),
+      );
+    }
+    if (filters.labels.length > 0) {
+      result = result.filter((i) =>
+        filters.labels.some((l) => i.labels.includes(l)),
       );
     }
     return result;
@@ -302,6 +406,7 @@ export function ProjectBoardContent({
         filters={filters}
         onFiltersChange={setFilters}
         epics={project.epics}
+        allLabels={allLabels}
       />
 
       {/* Board */}
@@ -324,9 +429,32 @@ export function ProjectBoardContent({
                 epicMap={epicMap}
                 projectId={project.id}
                 onIssueCreated={() => router.refresh()}
+                onIssueClick={(issue) => {
+                  setSelectedIssue(issue);
+                  setDetailPanelOpen(true);
+                }}
+                autoOpenQuickAdd={quickAddColumnId === column.id}
+                onQuickAddClose={() => setQuickAddColumnId(null)}
+                selectable
+                selectedIds={selectedIds}
+                onSelect={handleSelect}
+                onSelectAll={handleSelectAll}
+                onDeselectAll={handleDeselectAll}
               />
             ))}
           </div>
+
+          <p className="text-[11px] text-muted-foreground/40 text-center pt-4">
+            Press{" "}
+            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+              c
+            </kbd>{" "}
+            to quick-add &middot;{" "}
+            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+              n
+            </kbd>{" "}
+            for new issue
+          </p>
 
           <DragOverlay>
             {activeIssue ? (
@@ -342,6 +470,103 @@ export function ProjectBoardContent({
           </DragOverlay>
         </DndContext>
       </div>
+
+      <IssueDetailPanel
+        issue={selectedIssue}
+        open={detailPanelOpen}
+        onOpenChange={(open) => {
+          setDetailPanelOpen(open);
+          if (!open) {
+            // Clear selectedIssue after animation completes
+            setTimeout(() => setSelectedIssue(null), 200);
+          }
+        }}
+        epicName={
+          selectedIssue?.epicId
+            ? epicMap[selectedIssue.epicId]
+            : undefined
+        }
+        githubRepo={project.githubRepo}
+        onEdit={(issue) => {
+          setDetailPanelOpen(false);
+          setTimeout(() => {
+            setSelectedIssue(null);
+            setEditingIssue(issue);
+            setEditPanelOpen(true);
+          }, 200);
+        }}
+        onDelete={(issue) => {
+          setDetailPanelOpen(false);
+          setTimeout(() => {
+            setSelectedIssue(null);
+            setDeletingIssue(issue);
+          }, 200);
+        }}
+        onDuplicate={async (issue) => {
+          setDetailPanelOpen(false);
+          setTimeout(async () => {
+            setSelectedIssue(null);
+            const result = await duplicateIssue(issue.id);
+            if ("data" in result && result.data) {
+              router.refresh();
+              setEditingIssue(result.data);
+              setEditPanelOpen(true);
+            }
+          }, 200);
+        }}
+      />
+
+      <EditIssuePanel
+        key={editingIssue?.id}
+        issue={editingIssue}
+        open={editPanelOpen}
+        onOpenChange={(open) => {
+          setEditPanelOpen(open);
+          if (!open) {
+            setTimeout(() => setEditingIssue(null), 200);
+          }
+        }}
+        epics={project.epics}
+        onSuccess={() => router.refresh()}
+      />
+
+      <DeleteIssueDialog
+        issue={deletingIssue}
+        open={deletingIssue !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingIssue(null);
+        }}
+        onSuccess={() => router.refresh()}
+      />
+
+      <CreateIssuePanel
+        open={createPanelOpen}
+        onOpenChange={(open) => {
+          setCreatePanelOpen(open);
+          if (open) {
+            // Close other modals when create opens
+            setDetailPanelOpen(false);
+            setEditPanelOpen(false);
+            setSelectedIssue(null);
+            setEditingIssue(null);
+            setDeletingIssue(null);
+          }
+        }}
+        projectId={project.id}
+        status="BACKLOG"
+        issueCount={issues.filter((i) => i.status === "BACKLOG").length}
+        epics={project.epics}
+        onSuccess={() => router.refresh()}
+      />
+
+      {selectedIds.size > 0 && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          selectedIds={Array.from(selectedIds)}
+          onClear={clearSelection}
+          onSuccess={() => router.refresh()}
+        />
+      )}
     </>
   );
 }

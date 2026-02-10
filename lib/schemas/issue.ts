@@ -48,8 +48,20 @@ export const issueFiltersSchema = z.object({
   type: z.nativeEnum(IssueType).optional(),
 });
 
+export const bulkUpdateIssuesSchema = z.object({
+  ids: z.array(z.string().cuid()).min(1, "Select at least one issue"),
+  status: z.nativeEnum(IssueStatus).optional(),
+  priority: z.nativeEnum(Priority).optional(),
+});
+
+export const bulkDeleteIssuesSchema = z.object({
+  ids: z.array(z.string().cuid()).min(1, "Select at least one issue"),
+});
+
 export type CreateIssueInput = z.infer<typeof createIssueSchema>;
 export type UpdateIssueInput = z.infer<typeof updateIssueSchema>;
 export type UpdateIssueStatusInput = z.infer<typeof updateIssueStatusSchema>;
 export type ReorderIssuesInput = z.infer<typeof reorderIssuesSchema>;
 export type IssueFiltersInput = z.infer<typeof issueFiltersSchema>;
+export type BulkUpdateIssuesInput = z.infer<typeof bulkUpdateIssuesSchema>;
+export type BulkDeleteIssuesInput = z.infer<typeof bulkDeleteIssuesSchema>;

@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type Epic = Prisma.EpicModel
 /**
+ * Model IssueActivity
+ * 
+ */
+export type IssueActivity = Prisma.IssueActivityModel
+/**
  * Model Issue
  * 
  */

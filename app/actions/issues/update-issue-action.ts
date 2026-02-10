@@ -1,6 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import { logIssueChanges } from "@/lib/utils/issue-activity";
 import type { ActionResult, Issue } from "@/lib/types/actions";
 import {
   updateIssueSchema,
@@ -20,10 +22,9 @@ export async function updateIssue(
       return { error: validated.error.issues[0].message };
     }
 
-    // Get current issue to know its project
+    // Get current issue for change tracking and project validation
     const currentIssue = await prisma.issue.findUnique({
       where: { id },
-      select: { projectId: true },
     });
 
     if (!currentIssue) {
@@ -50,6 +51,10 @@ export async function updateIssue(
       where: { id },
       data: validated.data,
     });
+
+    await logIssueChanges(id, currentIssue, issue);
+
+    revalidatePath(`/projects/${currentIssue.projectId}`);
 
     return { data: issue };
   } catch (error) {

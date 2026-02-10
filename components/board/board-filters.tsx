@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getLabelColor } from "@/lib/utils/label-colors";
 import type {
   Priority,
   IssueType,
@@ -52,24 +53,28 @@ export interface BoardFilterState {
   priorities: Priority[];
   types: IssueType[];
   epicIds: string[];
+  labels: string[];
 }
 
 interface BoardFiltersProps {
   filters: BoardFilterState;
   onFiltersChange: (filters: BoardFilterState) => void;
   epics: EpicWithIssueCounts[];
+  allLabels: string[];
 }
 
 export function BoardFilters({
   filters,
   onFiltersChange,
   epics,
+  allLabels,
 }: BoardFiltersProps) {
   const activeCount =
     (filters.search ? 1 : 0) +
     filters.priorities.length +
     filters.types.length +
-    filters.epicIds.length;
+    filters.epicIds.length +
+    filters.labels.length;
 
   function togglePriority(priority: Priority) {
     const next = filters.priorities.includes(priority)
@@ -92,8 +97,15 @@ export function BoardFilters({
     onFiltersChange({ ...filters, epicIds: next });
   }
 
+  function toggleLabel(label: string) {
+    const next = filters.labels.includes(label)
+      ? filters.labels.filter((l) => l !== label)
+      : [...filters.labels, label];
+    onFiltersChange({ ...filters, labels: next });
+  }
+
   function clearAll() {
-    onFiltersChange({ search: "", priorities: [], types: [], epicIds: [] });
+    onFiltersChange({ search: "", priorities: [], types: [], epicIds: [], labels: [] });
   }
 
   return (
@@ -220,6 +232,46 @@ export function BoardFilters({
                 {epic.title}
               </DropdownMenuCheckboxItem>
             ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      {/* Label filter */}
+      {allLabels.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant={filters.labels.length > 0 ? "secondary" : "outline"}
+              size="sm"
+              className="text-xs h-7"
+            >
+              Label
+              {filters.labels.length > 0 && (
+                <span className="ml-1 rounded-full bg-foreground/10 px-1.5 tabular-nums">
+                  {filters.labels.length}
+                </span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel>Label</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {allLabels.map((label) => {
+              const color = getLabelColor(label);
+              return (
+                <DropdownMenuCheckboxItem
+                  key={label}
+                  checked={filters.labels.includes(label)}
+                  onCheckedChange={() => toggleLabel(label)}
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <span
+                    className={`h-2 w-2 rounded-full shrink-0 ${color.dot}`}
+                  />
+                  {label}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
       )}

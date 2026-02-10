@@ -45,3 +45,13 @@ export const GithubState = {
 } as const
 
 export type GithubState = (typeof GithubState)[keyof typeof GithubState]
+
+
+export const ActivityType = {
+  CREATED: 'CREATED',
+  STATUS_CHANGED: 'STATUS_CHANGED',
+  EDITED: 'EDITED',
+  SYNCED: 'SYNCED'
+} as const
+
+export type ActivityType = (typeof ActivityType)[keyof typeof ActivityType]
