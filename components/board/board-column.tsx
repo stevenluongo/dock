@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { IssueCard } from "./issue-card";
 import { createIssue } from "@/app/actions/issues/create-issue-action";
-import type { Issue, IssueStatus } from "@/lib/types/actions";
+import type { Issue, IssueStatus, EpicWithIssueCounts } from "@/lib/types/actions";
 
 interface BoardColumnProps {
   id: IssueStatus;
@@ -30,6 +30,8 @@ interface BoardColumnProps {
   onSelect?: (issueId: string, selected: boolean) => void;
   onSelectAll?: (columnId: IssueStatus, issueIds: string[]) => void;
   onDeselectAll?: (issueIds: string[]) => void;
+  epics?: EpicWithIssueCounts[];
+  onEpicChange?: (issueId: string, epicId: string | null) => void;
 }
 
 export function BoardColumn({
@@ -48,6 +50,8 @@ export function BoardColumn({
   onSelect,
   onSelectAll,
   onDeselectAll,
+  epics,
+  onEpicChange,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -190,7 +194,9 @@ export function BoardColumn({
                 key={issue.id}
                 issue={issue}
                 epicName={issue.epicId ? epicMap[issue.epicId] : undefined}
+                epics={epics}
                 onClick={onIssueClick}
+                onEpicChange={onEpicChange}
                 selectable={selectable}
                 selected={selectedIds?.has(issue.id)}
                 onSelect={onSelect}

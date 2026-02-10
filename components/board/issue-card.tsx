@@ -3,8 +3,16 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getLabelColor } from "@/lib/utils/label-colors";
-import type { Issue, IssueType, Priority } from "@/lib/types/actions";
+import type { Issue, IssueType, Priority, EpicWithIssueCounts } from "@/lib/types/actions";
 
 const TYPE_STYLES: Record<IssueType, { label: string; className: string }> = {
   TASK: { label: "Task", className: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300" },
@@ -23,13 +31,15 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 interface IssueCardProps {
   issue: Issue;
   epicName?: string;
+  epics?: EpicWithIssueCounts[];
   onClick?: (issue: Issue) => void;
+  onEpicChange?: (issueId: string, epicId: string | null) => void;
   selectable?: boolean;
   selected?: boolean;
   onSelect?: (issueId: string, selected: boolean) => void;
 }
 
-export function IssueCard({ issue, epicName, onClick, selectable, selected, onSelect }: IssueCardProps) {
+export function IssueCard({ issue, epicName, epics, onClick, onEpicChange, selectable, selected, onSelect }: IssueCardProps) {
   const {
     attributes,
     listeners,
@@ -94,12 +104,43 @@ export function IssueCard({ issue, epicName, onClick, selectable, selected, onSe
           {typeStyle.label}
         </span>
 
-        {/* Epic name */}
-        {epicName && (
+        {/* Epic name with quick-assign */}
+        {epics && onEpicChange ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="text-[10px] text-muted-foreground truncate max-w-30 hover:text-foreground hover:underline transition-colors"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                {epicName ?? "Set epic"}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuLabel>Move to Epic</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => onEpicChange(issue.id, null)}
+                disabled={issue.epicId === null}
+              >
+                <span className="text-muted-foreground">No Epic</span>
+              </DropdownMenuItem>
+              {epics.map((epic) => (
+                <DropdownMenuItem
+                  key={epic.id}
+                  onSelect={() => onEpicChange(issue.id, epic.id)}
+                  disabled={issue.epicId === epic.id}
+                >
+                  {epic.title}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : epicName ? (
           <span className="text-[10px] text-muted-foreground truncate max-w-30">
             {epicName}
           </span>
-        )}
+        ) : null}
 
         {/* GitHub issue number */}
         {issue.githubIssueNumber && (

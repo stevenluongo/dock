@@ -31,6 +31,7 @@ import { DeleteEpicDialog } from "./delete-epic-dialog";
 import { updateIssueStatus } from "@/app/actions/issues/update-issue-status-action";
 import { reorderIssues } from "@/app/actions/issues/reorder-issues-action";
 import { duplicateIssue } from "@/app/actions/issues/duplicate-issue-action";
+import { updateIssue } from "@/app/actions/issues/update-issue-action";
 import type { ProjectWithEpics, Issue, IssueStatus, EpicWithIssueCounts } from "@/lib/types/actions";
 
 const COLUMNS: { id: IssueStatus; title: string; colorClass: string }[] = [
@@ -129,6 +130,16 @@ export function ProjectBoardContent({
       }
     },
     [],
+  );
+
+  const handleEpicChange = useCallback(
+    async (issueId: string, epicId: string | null) => {
+      const result = await updateIssue(issueId, { epicId });
+      if ("data" in result) {
+        router.refresh();
+      }
+    },
+    [router],
   );
 
   // Sync local state with server-side props after revalidation
@@ -470,6 +481,8 @@ export function ProjectBoardContent({
                   onSelect={handleSelect}
                   onSelectAll={handleSelectAll}
                   onDeselectAll={handleDeselectAll}
+                  epics={project.epics}
+                  onEpicChange={handleEpicChange}
                 />
               ))}
             </div>
