@@ -77,6 +77,8 @@ export function ProjectBoardContent({
     null,
   );
   const [createPanelOpen, setCreatePanelOpen] = useState(false);
+  const [detailPanelOpen, setDetailPanelOpen] = useState(false);
+  const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const handleSelect = useCallback((issueId: string, selected: boolean) => {
@@ -137,6 +139,12 @@ export function ProjectBoardContent({
         setQuickAddColumnId("TODO");
       } else if (e.key === "n" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
+        // Close any open modals before opening create
+        setDetailPanelOpen(false);
+        setEditPanelOpen(false);
+        setSelectedIssue(null);
+        setEditingIssue(null);
+        setDeletingIssue(null);
         setCreatePanelOpen(true);
       }
     }
@@ -421,7 +429,10 @@ export function ProjectBoardContent({
                 epicMap={epicMap}
                 projectId={project.id}
                 onIssueCreated={() => router.refresh()}
-                onIssueClick={setSelectedIssue}
+                onIssueClick={(issue) => {
+                  setSelectedIssue(issue);
+                  setDetailPanelOpen(true);
+                }}
                 autoOpenQuickAdd={quickAddColumnId === column.id}
                 onQuickAddClose={() => setQuickAddColumnId(null)}
                 selectable
@@ -462,9 +473,13 @@ export function ProjectBoardContent({
 
       <IssueDetailPanel
         issue={selectedIssue}
-        open={selectedIssue !== null}
+        open={detailPanelOpen}
         onOpenChange={(open) => {
-          if (!open) setSelectedIssue(null);
+          setDetailPanelOpen(open);
+          if (!open) {
+            // Clear selectedIssue after animation completes
+            setTimeout(() => setSelectedIssue(null), 200);
+          }
         }}
         epicName={
           selectedIssue?.epicId
@@ -473,29 +488,43 @@ export function ProjectBoardContent({
         }
         githubRepo={project.githubRepo}
         onEdit={(issue) => {
-          setSelectedIssue(null);
-          setEditingIssue(issue);
+          setDetailPanelOpen(false);
+          setTimeout(() => {
+            setSelectedIssue(null);
+            setEditingIssue(issue);
+            setEditPanelOpen(true);
+          }, 200);
         }}
         onDelete={(issue) => {
-          setSelectedIssue(null);
-          setDeletingIssue(issue);
+          setDetailPanelOpen(false);
+          setTimeout(() => {
+            setSelectedIssue(null);
+            setDeletingIssue(issue);
+          }, 200);
         }}
         onDuplicate={async (issue) => {
-          setSelectedIssue(null);
-          const result = await duplicateIssue(issue.id);
-          if ("data" in result && result.data) {
-            router.refresh();
-            setEditingIssue(result.data);
-          }
+          setDetailPanelOpen(false);
+          setTimeout(async () => {
+            setSelectedIssue(null);
+            const result = await duplicateIssue(issue.id);
+            if ("data" in result && result.data) {
+              router.refresh();
+              setEditingIssue(result.data);
+              setEditPanelOpen(true);
+            }
+          }, 200);
         }}
       />
 
       <EditIssuePanel
         key={editingIssue?.id}
         issue={editingIssue}
-        open={editingIssue !== null}
+        open={editPanelOpen}
         onOpenChange={(open) => {
-          if (!open) setEditingIssue(null);
+          setEditPanelOpen(open);
+          if (!open) {
+            setTimeout(() => setEditingIssue(null), 200);
+          }
         }}
         epics={project.epics}
         onSuccess={() => router.refresh()}
@@ -512,7 +541,17 @@ export function ProjectBoardContent({
 
       <CreateIssuePanel
         open={createPanelOpen}
-        onOpenChange={setCreatePanelOpen}
+        onOpenChange={(open) => {
+          setCreatePanelOpen(open);
+          if (open) {
+            // Close other modals when create opens
+            setDetailPanelOpen(false);
+            setEditPanelOpen(false);
+            setSelectedIssue(null);
+            setEditingIssue(null);
+            setDeletingIssue(null);
+          }
+        }}
         projectId={project.id}
         status="BACKLOG"
         issueCount={issues.filter((i) => i.status === "BACKLOG").length}
