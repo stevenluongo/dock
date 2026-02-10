@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { createGitHubClient } from "@/lib/github";
 import {
   fetchGitHubIssues,
+  ensureLabelsExist,
   pushIssuesToGitHub,
   updateIssuesToGitHub,
   pullIssuesFromGitHub,
@@ -51,6 +52,9 @@ export async function syncProjectWithGithub(
       githubIssues.map((issue) => [issue.number, issue]),
     );
 
+    // Ensure all labels exist in GitHub repo with proper colors
+    const labelResult = await ensureLabelsExist(projectId, project.githubRepo, octokit);
+
     // Push: Create GitHub issues for unsynced local issues
     const pushResult = await pushIssuesToGitHub(
       projectId,
@@ -88,6 +92,7 @@ export async function syncProjectWithGithub(
         importedCount: pullResult.imported,
         conflictCount: updateResult.conflicts + pullResult.conflicts,
         errors: [
+          ...labelResult.errors,
           ...pushResult.errors,
           ...updateResult.errors,
           ...pullResult.errors,

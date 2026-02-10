@@ -24,6 +24,18 @@ export async function fetchGitHubIssues(
 const VALID_TYPES = new Set(["TASK", "STORY", "BUG", "DOCS"]);
 const VALID_PRIORITIES = new Set(["CRITICAL", "HIGH", "MEDIUM", "LOW"]);
 
+const LABEL_COLORS: Record<string, string> = {
+  "type:task": "1d76db",
+  "type:story": "0e8a16",
+  "type:bug": "d73a4a",
+  "type:docs": "0075ca",
+  "priority:critical": "b60205",
+  "priority:high": "d93f0b",
+  "priority:medium": "fbca04",
+  "priority:low": "c5def5",
+};
+const DEFAULT_LABEL_COLOR = "ededed";
+
 function parseGitHubLabels(labelObjects: (string | { name?: string })[]): {
   type: IssueType;
   priority: Priority;
@@ -63,6 +75,59 @@ function buildGitHubLabels(issue: Issue): string[] {
   labels.push(`priority:${issue.priority.toLowerCase()}`);
   labels.push(...issue.labels);
   return labels;
+}
+
+export async function ensureLabelsExist(
+  projectId: string,
+  githubRepo: string,
+  octokit: Octokit,
+): Promise<{ created: number; errors: string[] }> {
+  const { owner, repo } = parseGitHubRepo(githubRepo);
+  const errors: string[] = [];
+  let created = 0;
+
+  const issues = await prisma.issue.findMany({
+    where: { projectId },
+    select: { type: true, priority: true, labels: true },
+  });
+
+  const neededLabels = new Set<string>();
+  for (const issue of issues) {
+    neededLabels.add(`type:${issue.type.toLowerCase()}`);
+    neededLabels.add(`priority:${issue.priority.toLowerCase()}`);
+    for (const label of issue.labels) {
+      neededLabels.add(label);
+    }
+  }
+
+  const existingLabels = await octokit.paginate(
+    octokit.rest.issues.listLabelsForRepo,
+    { owner, repo, per_page: 100 },
+  );
+  const existingNames = new Set(
+    existingLabels.map((l) => l.name.toLowerCase()),
+  );
+
+  for (const label of neededLabels) {
+    if (existingNames.has(label.toLowerCase())) continue;
+
+    try {
+      await octokit.rest.issues.createLabel({
+        owner,
+        repo,
+        name: label,
+        color: LABEL_COLORS[label] ?? DEFAULT_LABEL_COLOR,
+      });
+      created++;
+    } catch (error) {
+      if ((error as { status?: number }).status === 422) continue;
+      const message =
+        error instanceof Error ? error.message : "Unknown error";
+      errors.push(`Failed to create label "${label}": ${message}`);
+    }
+  }
+
+  return { created, errors };
 }
 
 export async function pushIssuesToGitHub(
@@ -217,25 +282,34 @@ export async function pullIssuesFromGitHub(
     const localIssue = issuesByNumber.get(ghIssue.number);
 
     if (localIssue) {
-      // Update existing synced issue
+      // Detect state changes
       const newGithubState: GithubState =
         ghIssue.state === "closed" ? "CLOSED" : "OPEN";
       const stateChanged = localIssue.githubState !== newGithubState;
       const shouldMarkDone =
         newGithubState === "CLOSED" && localIssue.status !== "DONE";
 
-      if (!stateChanged && !shouldMarkDone) continue;
+      // Detect label changes
+      const parsed = parseGitHubLabels(ghIssue.labels);
+      const typeChanged = localIssue.type !== parsed.type;
+      const priorityChanged = localIssue.priority !== parsed.priority;
+      const labelsChanged =
+        JSON.stringify([...localIssue.labels].sort()) !==
+        JSON.stringify([...parsed.labels].sort());
+
+      const hasChanges =
+        stateChanged || shouldMarkDone || typeChanged || priorityChanged || labelsChanged;
+
+      if (!hasChanges) continue;
 
       // Conflict detection: if local also changed since last sync, compare timestamps
       if (lastSyncedAt && localIssue.updatedAt > lastSyncedAt && ghIssue.updated_at) {
         const ghUpdatedAt = new Date(ghIssue.updated_at);
-        if (ghUpdatedAt <= lastSyncedAt) continue; // GitHub didn't change — no conflict
+        if (ghUpdatedAt <= lastSyncedAt) continue;
         conflicts++;
         if (localIssue.updatedAt > ghUpdatedAt) {
-          // Local is newer — skip pull for this issue
           continue;
         }
-        // GitHub is newer — proceed with pull
       }
 
       try {
@@ -244,6 +318,9 @@ export async function pullIssuesFromGitHub(
           data: {
             githubState: newGithubState,
             ...(shouldMarkDone ? { status: "DONE" } : {}),
+            ...(typeChanged ? { type: parsed.type } : {}),
+            ...(priorityChanged ? { priority: parsed.priority } : {}),
+            ...(labelsChanged ? { labels: parsed.labels } : {}),
           },
         });
 
@@ -254,6 +331,24 @@ export async function pullIssuesFromGitHub(
             "status",
             localIssue.status,
             "DONE",
+          );
+        }
+
+        if (typeChanged) {
+          await logActivity(localIssue.id, "SYNCED", "type", localIssue.type, parsed.type);
+        }
+
+        if (priorityChanged) {
+          await logActivity(localIssue.id, "SYNCED", "priority", localIssue.priority, parsed.priority);
+        }
+
+        if (labelsChanged) {
+          await logActivity(
+            localIssue.id,
+            "SYNCED",
+            "labels",
+            localIssue.labels.join(", ") || null,
+            parsed.labels.join(", ") || null,
           );
         }
 
