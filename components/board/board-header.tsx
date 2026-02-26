@@ -23,19 +23,38 @@ interface BoardHeaderProps {
 export function BoardHeader({ project, onSync, onEditProject }: BoardHeaderProps) {
   const [isSyncing, startTransition] = useTransition();
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncIsError, setSyncIsError] = useState(false);
 
   function handleSync() {
     setSyncMessage(null);
     startTransition(async () => {
       const result = await syncProjectWithGithub(project.id);
       if ("error" in result) {
+        setSyncIsError(true);
         setSyncMessage(result.error ?? "Sync failed");
-        setTimeout(() => setSyncMessage(null), 10_000);
+        setTimeout(() => { setSyncMessage(null); setSyncIsError(false); }, 10_000);
       } else {
-        if (result.data.rateLimitWarning) {
-          setSyncMessage(result.data.rateLimitWarning);
+        const { data } = result;
+        const parts: string[] = [];
+
+        if (data.createdCount > 0) parts.push(`${data.createdCount} created`);
+        if (data.updatedCount > 0) parts.push(`${data.updatedCount} updated`);
+        if (data.importedCount > 0) parts.push(`${data.importedCount} imported`);
+        if (data.conflictCount > 0) parts.push(`${data.conflictCount} conflicts`);
+
+        if (data.errors.length > 0) {
+          setSyncIsError(true);
+          setSyncMessage(data.errors.join("; "));
+          setTimeout(() => { setSyncMessage(null); setSyncIsError(false); }, 10_000);
+        } else if (data.rateLimitWarning) {
+          const summary = parts.length > 0 ? `Synced (${parts.join(", ")}). ` : "";
+          setSyncMessage(`${summary}${data.rateLimitWarning}`);
           setTimeout(() => setSyncMessage(null), 8_000);
+        } else if (parts.length > 0) {
+          setSyncMessage(`Synced: ${parts.join(", ")}`);
+          setTimeout(() => setSyncMessage(null), 5_000);
         }
+
         onSync?.();
       }
     });
@@ -112,7 +131,7 @@ export function BoardHeader({ project, onSync, onEditProject }: BoardHeaderProps
       </div>
 
       {syncMessage && (
-        <p className="text-xs text-amber-600 dark:text-amber-400">
+        <p className={`text-xs ${syncIsError ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}`}>
           {syncMessage}
         </p>
       )}
