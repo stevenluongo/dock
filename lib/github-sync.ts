@@ -37,14 +37,25 @@ const LABEL_COLORS: Record<string, string> = {
   "priority:low": "c5def5",
 };
 const DEFAULT_LABEL_COLOR = "ededed";
+const EPIC_LABEL_COLOR = "7057ff";
+
+function slugifyEpicTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 function parseGitHubLabels(labelObjects: (string | { name?: string })[]): {
   type: IssueType;
   priority: Priority;
   labels: string[];
+  epicSlug: string | null;
 } {
   let type: IssueType = "TASK";
   let priority: Priority = "MEDIUM";
+  let epicSlug: string | null = null;
   const labels: string[] = [];
 
   for (const labelObj of labelObjects) {
@@ -63,19 +74,24 @@ function parseGitHubLabels(labelObjects: (string | { name?: string })[]): {
       } else {
         labels.push(label);
       }
+    } else if (label.startsWith("epic:")) {
+      epicSlug = label.slice(5);
     } else if (label) {
       labels.push(label);
     }
   }
 
-  return { type, priority, labels };
+  return { type, priority, labels, epicSlug };
 }
 
-function buildGitHubLabels(issue: Issue): string[] {
+function buildGitHubLabels(issue: Issue, epicTitle?: string | null): string[] {
   const labels: string[] = [];
   labels.push(`type:${issue.type.toLowerCase()}`);
   labels.push(`priority:${issue.priority.toLowerCase()}`);
   labels.push(...issue.labels);
+  if (epicTitle) {
+    labels.push(`epic:${slugifyEpicTitle(epicTitle)}`);
+  }
   return labels;
 }
 
@@ -90,7 +106,7 @@ export async function ensureLabelsExist(
 
   const issues = await prisma.issue.findMany({
     where: { projectId },
-    select: { type: true, priority: true, labels: true },
+    select: { type: true, priority: true, labels: true, epic: { select: { title: true } } },
   });
 
   const neededLabels = new Set<string>();
@@ -99,6 +115,9 @@ export async function ensureLabelsExist(
     neededLabels.add(`priority:${issue.priority.toLowerCase()}`);
     for (const label of issue.labels) {
       neededLabels.add(label);
+    }
+    if (issue.epic) {
+      neededLabels.add(`epic:${slugifyEpicTitle(issue.epic.title)}`);
     }
   }
 
@@ -112,13 +131,17 @@ export async function ensureLabelsExist(
   for (const label of neededLabels) {
     if (existingNames.has(label.toLowerCase())) continue;
 
+    const color = label.startsWith("epic:")
+      ? EPIC_LABEL_COLOR
+      : (LABEL_COLORS[label] ?? DEFAULT_LABEL_COLOR);
+
     try {
       await withRateLimit(() =>
         octokit.rest.issues.createLabel({
           owner,
           repo,
           name: label,
-          color: LABEL_COLORS[label] ?? DEFAULT_LABEL_COLOR,
+          color,
         }),
       );
       created++;
@@ -149,6 +172,7 @@ export async function pushIssuesToGitHub(
   const unsyncedIssues = await prisma.issue.findMany({
     where: { projectId, githubIssueNumber: null },
     orderBy: { createdAt: "asc" },
+    include: { epic: { select: { title: true } } },
   });
 
   for (const issue of unsyncedIssues) {
@@ -159,7 +183,7 @@ export async function pushIssuesToGitHub(
           repo,
           title: issue.title,
           body: issue.description || "",
-          labels: buildGitHubLabels(issue),
+          labels: buildGitHubLabels(issue, issue.epic?.title),
         }),
       );
 
@@ -206,22 +230,34 @@ export async function updateIssuesToGitHub(
   let updated = 0;
   let conflicts = 0;
 
-  const where: Record<string, unknown> = {
-    projectId,
-    githubIssueNumber: { not: null },
-  };
+  // Fetch all synced issues to detect label drift (e.g. epic labels added)
+  const allSyncedIssues = await prisma.issue.findMany({
+    where: { projectId, githubIssueNumber: { not: null } },
+    include: { epic: { select: { title: true } } },
+  });
 
-  // Only push issues changed since last sync
-  if (lastSyncedAt) {
-    where.updatedAt = { gt: lastSyncedAt };
-  }
-
-  const changedIssues = await prisma.issue.findMany({ where });
-
-  for (const issue of changedIssues) {
-    // Conflict detection: check if GitHub also changed since last sync
+  for (const issue of allSyncedIssues) {
     const ghIssue = ghIssuesByNumber.get(issue.githubIssueNumber!);
-    if (ghIssue && lastSyncedAt && ghIssue.updated_at) {
+
+    // Check if this issue was modified since last sync
+    const modifiedLocally = !lastSyncedAt || issue.updatedAt > lastSyncedAt;
+
+    // Check if labels on GitHub differ from what we'd send
+    const expectedLabels = buildGitHubLabels(issue, issue.epic?.title).sort();
+    const currentGhLabels = ghIssue
+      ? ghIssue.labels
+          .map((l) => (typeof l === "string" ? l : l.name ?? ""))
+          .filter(Boolean)
+          .sort()
+      : null;
+    const labelsDrifted = currentGhLabels !== null &&
+      JSON.stringify(expectedLabels) !== JSON.stringify(currentGhLabels);
+
+    // Skip if nothing changed locally and labels match
+    if (!modifiedLocally && !labelsDrifted) continue;
+
+    // Conflict detection: check if GitHub also changed since last sync
+    if (modifiedLocally && ghIssue && lastSyncedAt && ghIssue.updated_at) {
       const ghUpdatedAt = new Date(ghIssue.updated_at);
       if (ghUpdatedAt > lastSyncedAt) {
         // Both sides changed — last-write wins
@@ -242,7 +278,7 @@ export async function updateIssuesToGitHub(
           issue_number: issue.githubIssueNumber!,
           title: issue.title,
           body: issue.description || "",
-          labels: buildGitHubLabels(issue),
+          labels: buildGitHubLabels(issue, issue.epic?.title),
           state: issue.status === "DONE" ? "closed" : "open",
         }),
       );
@@ -272,6 +308,35 @@ export async function updateIssuesToGitHub(
   }
 
   return { updated, conflicts, errors };
+}
+
+async function resolveEpicId(
+  projectId: string,
+  epicSlug: string | null,
+): Promise<string | null> {
+  if (!epicSlug) return null;
+
+  // Find an epic whose slugified title matches
+  const epics = await prisma.epic.findMany({
+    where: { projectId },
+    select: { id: true, title: true },
+  });
+
+  for (const epic of epics) {
+    if (slugifyEpicTitle(epic.title) === epicSlug) {
+      return epic.id;
+    }
+  }
+
+  // No match — create a new epic using the slug as title
+  const newEpic = await prisma.epic.create({
+    data: {
+      projectId,
+      title: epicSlug,
+    },
+  });
+
+  return newEpic.id;
 }
 
 export async function pullIssuesFromGitHub(
@@ -332,6 +397,9 @@ export async function pullIssuesFromGitHub(
       }
 
       try {
+        // Resolve epic from labels
+        const epicId = await resolveEpicId(projectId, parsed.epicSlug);
+
         await prisma.issue.update({
           where: { id: localIssue.id },
           data: {
@@ -340,6 +408,7 @@ export async function pullIssuesFromGitHub(
             ...(typeChanged ? { type: parsed.type } : {}),
             ...(priorityChanged ? { priority: parsed.priority } : {}),
             ...(labelsChanged ? { labels: parsed.labels } : {}),
+            ...(epicId !== undefined ? { epicId } : {}),
           },
         });
 
@@ -398,6 +467,9 @@ export async function pullIssuesFromGitHub(
           .map((a) => a.login)
           .filter(Boolean);
 
+        // Resolve epic from labels
+        const epicId = await resolveEpicId(projectId, parsed.epicSlug);
+
         const issue = await prisma.issue.create({
           data: {
             projectId,
@@ -410,6 +482,7 @@ export async function pullIssuesFromGitHub(
             status,
             githubIssueNumber: ghIssue.number,
             githubState,
+            ...(epicId ? { epicId } : {}),
           },
         });
 
@@ -433,7 +506,10 @@ export async function autoSyncPushIssue(issueId: string): Promise<void> {
   try {
     const issue = await prisma.issue.findUnique({
       where: { id: issueId },
-      include: { project: { select: { githubAutoSync: true, githubRepo: true } } },
+      include: {
+        project: { select: { githubAutoSync: true, githubRepo: true } },
+        epic: { select: { title: true } },
+      },
     });
 
     if (!issue?.project?.githubAutoSync || !issue.project.githubRepo) return;
@@ -446,7 +522,7 @@ export async function autoSyncPushIssue(issueId: string): Promise<void> {
     }
 
     const { owner, repo } = parseGitHubRepo(issue.project.githubRepo);
-    const labels = buildGitHubLabels(issue);
+    const labels = buildGitHubLabels(issue, issue.epic?.title);
 
     if (issue.githubIssueNumber) {
       await withRateLimit(() =>
