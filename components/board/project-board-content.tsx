@@ -489,6 +489,7 @@ export function ProjectBoardContent({
         {/* Board */}
         <div className="flex-1 overflow-x-auto p-6">
           <DndContext
+            id="board-dnd"
             sensors={sensors}
             collisionDetection={closestCorners}
             onDragStart={handleDragStart}
