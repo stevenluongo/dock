@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, Github, MoreVertical, Pencil, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,17 +17,44 @@ import type { ProjectWithEpics } from "@/lib/types/actions";
 interface BoardHeaderProps {
   project: ProjectWithEpics;
   onSync?: () => void;
+  onEditProject?: () => void;
 }
 
-export function BoardHeader({ project, onSync }: BoardHeaderProps) {
+export function BoardHeader({ project, onSync, onEditProject }: BoardHeaderProps) {
   const [isSyncing, startTransition] = useTransition();
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncIsError, setSyncIsError] = useState(false);
 
   function handleSync() {
+    setSyncMessage(null);
     startTransition(async () => {
       const result = await syncProjectWithGithub(project.id);
       if ("error" in result) {
-        console.error("Sync failed:", result.error);
+        setSyncIsError(true);
+        setSyncMessage(result.error ?? "Sync failed");
+        setTimeout(() => { setSyncMessage(null); setSyncIsError(false); }, 10_000);
       } else {
+        const { data } = result;
+        const parts: string[] = [];
+
+        if (data.createdCount > 0) parts.push(`${data.createdCount} created`);
+        if (data.updatedCount > 0) parts.push(`${data.updatedCount} updated`);
+        if (data.importedCount > 0) parts.push(`${data.importedCount} imported`);
+        if (data.conflictCount > 0) parts.push(`${data.conflictCount} conflicts`);
+
+        if (data.errors.length > 0) {
+          setSyncIsError(true);
+          setSyncMessage(data.errors.join("; "));
+          setTimeout(() => { setSyncMessage(null); setSyncIsError(false); }, 10_000);
+        } else if (data.rateLimitWarning) {
+          const summary = parts.length > 0 ? `Synced (${parts.join(", ")}). ` : "";
+          setSyncMessage(`${summary}${data.rateLimitWarning}`);
+          setTimeout(() => setSyncMessage(null), 8_000);
+        } else if (parts.length > 0) {
+          setSyncMessage(`Synced: ${parts.join(", ")}`);
+          setTimeout(() => setSyncMessage(null), 5_000);
+        }
+
         onSync?.();
       }
     });
@@ -94,7 +121,7 @@ export function BoardHeader({ project, onSync }: BoardHeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={onEditProject}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit Project
               </DropdownMenuItem>
@@ -102,6 +129,12 @@ export function BoardHeader({ project, onSync }: BoardHeaderProps) {
           </DropdownMenu>
         </div>
       </div>
+
+      {syncMessage && (
+        <p className={`text-xs ${syncIsError ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}`}>
+          {syncMessage}
+        </p>
+      )}
     </div>
   );
 }

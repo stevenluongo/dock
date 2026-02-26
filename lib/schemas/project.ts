@@ -11,6 +11,7 @@ export const createProjectSchema = z.object({
     .regex(githubRepoRegex, "Invalid GitHub repo format. Use owner/repo")
     .optional()
     .or(z.literal("")),
+  githubAutoSync: z.boolean().optional(),
 });
 
 export const updateProjectSchema = z.object({
@@ -22,6 +23,7 @@ export const updateProjectSchema = z.object({
     .optional()
     .nullable()
     .or(z.literal("")),
+  githubAutoSync: z.boolean().optional(),
 });
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;

@@ -127,6 +127,7 @@ export const ProjectScalarFieldEnum = {
   name: 'name',
   description: 'description',
   githubRepo: 'githubRepo',
+  githubAutoSync: 'githubAutoSync',
   githubSyncedAt: 'githubSyncedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

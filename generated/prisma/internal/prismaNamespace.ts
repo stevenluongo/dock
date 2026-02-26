@@ -796,6 +796,7 @@ export const ProjectScalarFieldEnum = {
   name: 'name',
   description: 'description',
   githubRepo: 'githubRepo',
+  githubAutoSync: 'githubAutoSync',
   githubSyncedAt: 'githubSyncedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -943,6 +944,13 @@ export type EnumGithubStateFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'GithubState[]'
  */
 export type ListEnumGithubStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GithubState[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

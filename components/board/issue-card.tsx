@@ -33,6 +33,7 @@ interface IssueCardProps {
   epicName?: string;
   epicColor?: string | null;
   epics?: EpicWithIssueCounts[];
+  githubRepo?: string | null;
   onClick?: (issue: Issue) => void;
   onEpicChange?: (issueId: string, epicId: string | null) => void;
   selectable?: boolean;
@@ -40,7 +41,7 @@ interface IssueCardProps {
   onSelect?: (issueId: string, selected: boolean) => void;
 }
 
-export function IssueCard({ issue, epicName, epicColor, epics, onClick, onEpicChange, selectable, selected, onSelect }: IssueCardProps) {
+export function IssueCard({ issue, epicName, epicColor, epics, githubRepo, onClick, onEpicChange, selectable, selected, onSelect }: IssueCardProps) {
   const {
     attributes,
     listeners,
@@ -156,11 +157,21 @@ export function IssueCard({ issue, epicName, epicColor, epics, onClick, onEpicCh
         ) : null}
 
         {/* GitHub issue number */}
-        {issue.githubIssueNumber && (
+        {issue.githubIssueNumber && githubRepo ? (
+          <a
+            href={`https://github.com/${githubRepo}/issues/${issue.githubIssueNumber}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-[10px] text-muted-foreground tabular-nums hover:text-foreground transition-colors"
+          >
+            #{issue.githubIssueNumber}
+          </a>
+        ) : issue.githubIssueNumber ? (
           <span className="text-[10px] text-muted-foreground tabular-nums">
             #{issue.githubIssueNumber}
           </span>
-        )}
+        ) : null}
 
         {/* Assignee avatars */}
         {issue.assignees.length > 0 && (

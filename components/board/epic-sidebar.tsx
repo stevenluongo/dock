@@ -375,6 +375,7 @@ export function EpicSidebar({
 
         {/* Sortable epic items */}
         <DndContext
+          id="epic-sidebar-dnd"
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
